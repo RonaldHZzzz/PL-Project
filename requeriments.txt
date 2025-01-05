@@ -2,3 +2,5 @@ Django
 djangorestframework
 djangorestframework-simplejwt
 django-tailwind
+npm
+
