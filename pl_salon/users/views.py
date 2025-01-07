@@ -21,10 +21,19 @@ def register(request):
             try:
                 User.objects.create_user(username=request.POST['username'],password=request.POST['password'])
                 User.save
-                return HttpResponse('usuario creado')
+                return render(request,'register.html',{
+                'form':UserCreationForm,
+                'success': 'Usuario creado'
+                })
             except:
-                return HttpResponse('usurio no existe')
-        return HttpResponse('conctraseña no e igual')
+                return render(request,'register.html',{
+                    'form':UserCreationForm,
+                    'error': 'Usuario ya existe'
+                    })
+        return render(request,'register.html',{
+                'form':UserCreationForm,
+                'error': 'Contraseñas no coinciden'
+                })
     
     
         
