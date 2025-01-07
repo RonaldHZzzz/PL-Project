@@ -17,10 +17,10 @@
     <form action="/login" method="POST">
       {% csrf_token %}
       <div class="mb-4">
-        <label for="email" class="block text-black font-medium mb-2">Correo Electrónico</label>
-        <input type="email" id="email" name="email" required
+        <label for="username" class="block text-black font-medium mb-2">Nombre de Usuario</label>
+        <input type="text" id="username" name="username" required
           class="w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring focus:ring-blue-300">
-      </div>
+      </div>      
       <div class="mb-4">
         <label for="password" class="block text-black font-medium mb-2">Contraseña</label>
         <input type="password" id="password" name="password" required
