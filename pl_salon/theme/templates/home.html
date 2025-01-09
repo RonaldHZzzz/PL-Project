@@ -1,4 +1,5 @@
 {% load static tailwind_tags %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-gray-100">
 <head>
@@ -16,15 +17,16 @@
             <div class="flex h-16 items-center justify-between">
                 <div class="flex items-center">
                     <div class="shrink-0">
-                        <img class="h-8" src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=500" alt="Your Company">
+                        <img class="h-20 w-20 mt-3 " src="{% static 'images/logo.png' %}" alt="Your Company">
+
+
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
-                            <a href="#" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Dashboard</a>
-                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Team</a>
-                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Projects</a>
-                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Calendar</a>
-                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Reports</a>
+                            <a href="#" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Registro</a>
+                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Mis Trabajos</a>
+                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Trabajos</a>
+
                         </div>
                     </div>
                 </div>
@@ -54,7 +56,7 @@
 
     <header class="bg-white shadow">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 class="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">Registro de trabajos</h1>
         </div>
     </header>
 
