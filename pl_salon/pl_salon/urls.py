@@ -24,8 +24,8 @@ urlpatterns = [
     path('register/',views.register, name='register'),
     path('home/',views.home, name='home'),
     path('logout/',views.signout,name='logout'),
-    # path('my_works/',views.my_works,name='my works'),
-    # path('works/',views.works,name='works')
+    path('jobs/',views.jobs,name='jobs'),
+    path('total/',views.total,name='total'),
     
     
 ]   

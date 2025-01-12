@@ -10,6 +10,9 @@ from django.contrib.auth.decorators import login_required
 
 
 def register(request):
+    if request.user.is_authenticated:  # Verifica si el usuario ya está autenticado
+        return redirect('home')  # Redirige a 'home'
+    
     if request.method == 'GET':
         return render(request, 'register.html', {
             'form': UserCreationForm()
@@ -26,15 +29,12 @@ def register(request):
             })
 
         try:
-            # Crear usuario
             user = User.objects.create_user(username=username, password=password)
             user.is_active = True
             user.save()
-
-            # Autenticar al usuario recién creado
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                login(request, user)  # Aquí user es autenticado
+                login(request, user)
                 messages.success(request, 'Usuario registrado exitosamente.')
                 return redirect('home')
             else:
@@ -59,7 +59,7 @@ def register(request):
 def home(request):
     return render(request, 'home.html')
 
-
+@login_required
 def signout(request):
     logout(request)
     messages.success(request, 'Sesión cerrada exitosamente.')
@@ -67,12 +67,15 @@ def signout(request):
 
 
 def signin(request):
-    if request.method=='GET':
-            return render(request,'login.html',{
-                'form':AuthenticationForm
-            })
+    if request.user.is_authenticated:  # Verifica si el usuario ya está autenticado
+        return redirect('home')  # Redirige a 'home'
+    
+    if request.method == 'GET':
+        return render(request, 'login.html', {
+            'form': AuthenticationForm
+        })
     else: 
-        user= authenticate(
+        user = authenticate(
             request, username=request.POST['username'], password=request.POST['password'])
         if user is None:
             return render(request, 'login.html', {
@@ -81,7 +84,15 @@ def signin(request):
             })
         else:
             login(request, user)
-            return redirect('home/')
-            
+            return redirect('home')
+        
+@login_required
+def jobs(request):
+    return render(request,'jobs.html')
+
+@login_required
+def total(request):
+    return render(request,'total.html')
           
+
         
