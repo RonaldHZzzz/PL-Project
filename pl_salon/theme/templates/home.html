@@ -1,90 +1,34 @@
-{% load static tailwind_tags %}
-{% load static %}
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-100">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PL Salon</title>
-    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    {% tailwind_css %}
-</head>
-<body class="h-full">
-<div class="min-h-full">
-    <!-- Navigation -->
-    <nav class="bg-pink-100">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 items-center justify-between">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <img class="h-12 w-12" src="{% static 'images/logo.png' %}" alt="PL Salon">
-                </div>
+{% extends 'base.html' %}
 
-                <!-- Menu Principal -->
-                <div class="flex-1 flex items-center justify-start space-x-4">
-                    <a href="/home/" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white">Registro</a>
-                    <a href="/jobs/" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Mis Trabajos</a>
-                    <a href="/total/" class="rounded-md px-3 py-2 text-sm font-medium text-black hover:bg-rose-300 hover:text-black">Trabajos</a>
-                </div>
+{% block title %}Registro{% endblock %}
 
-                <!-- Botón Usuario -->
-                <div class="relative">
-                    <button type="button" class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true" onclick="toggleUserMenu()">
-                        <span class="sr-only">Abrir menú de usuario</span>
-                        <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
-                    </button>
-                    <div id="user-menu" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 hidden" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem">Tu Perfil</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem">Ajustes</a>
-                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem">Salir</a>
-                    </div>
-                </div>
+{% block header %}
+<h1 class="text-2xl font-bold tracking-tight text-gray-900">Registro de trabajos</h1>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="flex flex-col items-center py-6">
+            <!-- Trabajo -->
+            <label for="trabajo" class="text-lg font-semibold mb-2 text-center">Trabajo realizado</label>
+            <input type="text" id="trabajo" placeholder="Escribe aquí"
+                   class="w-full max-w-xs rounded-lg border border-gray-300 p-3 shadow-sm mb-6">
+
+            <!-- Monto -->
+            <label for="monto" class="text-lg font-semibold mb-2 text-center">Monto</label>
+            <div class="flex items-center space-x-2 justify-center">
+                <input type="text" id="monto" placeholder="00.00"
+                       class="w-24 ml-6 rounded-lg border border-gray-300 p-3 shadow-sm text-center">
+                <span class="text-lg font-bold">$</span>
             </div>
+
+            <!-- Botón -->
+            <button type="button"
+                    class="mt-6 w-60 bg-pink-300 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-pink-500">
+                Guardar
+            </button>
         </div>
-    </nav>
-
-    <!-- Header -->
-    <header class="bg-white shadow">
-        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900">Registro de trabajos</h1>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main>
-        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <div class="flex flex-col items-center py-6">
-                    <!-- Trabajo -->
-                    <label for="trabajo" class="text-lg font-semibold mb-2 text-center">Trabajo realizado</label>
-                    <input type="text" id="trabajo" placeholder="Escribe aquí"
-                           class="w-full max-w-xs rounded-lg border border-gray-300 p-3 shadow-sm mb-6">
-
-                    <!-- Monto -->
-                    <label for="monto" class="text-lg font-semibold mb-2 text-center">Monto</label>
-                    <div class="flex items-center space-x-2 justify-center">
-                        <input type="text" id="monto" placeholder="00.00"
-                               class="w-24 ml-6 rounded-lg border border-gray-300 p-3 shadow-sm text-center">
-                        <span class="text-lg font-bold">$</span>
-                    </div>
-
-                    <!-- Botón -->
-                    <button type="button"
-                            class="mt-6 w-60  bg-pink-300 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-pink-500">
-                        Guardar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
+    </div>
 </div>
-
-<script>
-    function toggleUserMenu() {
-        const menu = document.getElementById('user-menu');
-        menu.classList.toggle('hidden');
-    }
-</script>
-</body>
-</html>
+{% endblock %}
