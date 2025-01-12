@@ -1,21 +1,135 @@
 {% extends 'base.html' %}
 
-{% block title %}Trabajos{% endblock %}
+{% block title %}Registrar Descuento{% endblock %}
 
 {% block header %}
-<h1 class="text-2xl font-bold tracking-tight text-gray-900">Trabajos</h1>
+<h1 class="text-2xl font-bold tracking-tight text-gray-900">Registrar Descuento</h1>
 {% endblock %}
 
 {% block content %}
-<!-- Aquí puedes agregar el contenido específico para la página Trabajos -->
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <!-- Lista de todos los trabajos -->
-        <ul>
-            <li>Trabajo A</li>
-            <li>Trabajo B</li>
-            <li>Trabajo C</li>
-        </ul>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4">
+        <!-- Totales -->
+        <div class="bg-pink-100 p-4 rounded shadow-md text-center">
+            <h2 class="text-xl font-bold">Total Semanal</h2>
+            <p class="text-2xl">${{ total_semanal }}</p>
+        </div>
+        <div class="bg-pink-100 p-4 rounded shadow-md text-center">
+            <h2 class="text-xl font-bold">Total Mensual</h2>
+            <p class="text-2xl">${{ total_mensual }}</p>
+        </div>
+        <div class="bg-pink-100 p-4 rounded shadow-md text-center">
+            <h2 class="text-xl font-bold">Total Descontado</h2>
+            <p class="text-2xl">${{ total_descontado }}</p>
+        </div>
+        <div class="bg-pink-100 p-4 rounded shadow-md text-center">
+            <h2 class="text-xl font-bold">Total Final</h2>
+            <p class="text-2xl">${{ total_final }}</p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="col-span-1 sm:col-span-2 bg-white p-4 rounded shadow-md">
+            <h3 class="text-lg font-semibold text-center">Registrar descuento</h3>
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <!-- Campo para ingresar la descripción -->
+                <div>
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Ingrese qué se descontó</label>
+                    <input
+                        type="text"
+                        id="descripcion"
+                        name="descripcion"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm"
+                        placeholder="Ingrese qué se descontó"
+                        required
+                    >
+                </div>
+
+                <!-- Campo para ingresar el monto -->
+                <div>
+                    <label for="monto" class="block text-sm font-medium text-gray-700">Ingrese monto a descontar</label>
+                    <div class="flex items-center mt-1">
+                        <input
+                            type="number"
+                            id="monto"
+                            name="monto"
+                            class="block w-full rounded-l-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm"
+                            step="0.01"
+                            placeholder="0.00"
+                            required
+                        >
+                        <span class="inline-flex items-center px-3 rounded-r-md bg-gray-50 border border-l-0 border-gray-300 text-gray-500 text-sm">$</span>
+                    </div>
+                </div>
+
+                <!-- Botón para registrar -->
+                <button
+                    type="submit"
+                    class="w-full bg-pink-500 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                >
+                    Registrar
+                </button>
+            </form>
+        </div>
+
+        <!-- Lista de Descuentos -->
+        <div class="col-span-1 sm:col-span-2 bg-white p-4 rounded shadow-md">
+            <h3 class="text-lg font-semibold">Lista de Descuentos</h3>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr>
+                        <th class="border-b px-4 py-2">Descripción</th>
+                        <th class="border-b px-4 py-2">Fecha</th>
+                        <th class="border-b px-4 py-2">Descuento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for descuento in descuentos %}
+                    <tr>
+                        <td class="border-b px-4 py-2">{{ descuento.descripcion }}</td>
+                        <td class="border-b px-4 py-2">{{ descuento.fecha }}</td>
+                        <td class="border-b px-4 py-2">${{ descuento.monto }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-gray-500">No hay descuentos registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Gráfica -->
+        <div class="col-span-1 sm:col-span-2 md:col-span-4 bg-white p-4 rounded shadow-md">
+            <h3 class="text-lg font-semibold">Total Semanal</h3>
+            <canvas id="totalSemanalChart"></canvas>
+        </div>
     </div>
 </div>
+
+<!-- Gráfica con Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('totalSemanalChart').getContext('2d');
+    const totalSemanalChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+            datasets: [{
+                label: 'Total ($)',
+                data: [20, 30, 40, 25, 35, 50, 70],  // Reemplazar con datos reales
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

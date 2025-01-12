@@ -3,19 +3,72 @@
 {% block title %}Mis Trabajos{% endblock %}
 
 {% block header %}
-<h1 class="text-2xl font-bold tracking-tight text-gray-900">Mis Trabajos</h1>
+<h1 class="text-xl md:text-2xl font-bold tracking-tight text-gray-900">Trabajos</h1>
 {% endblock %}
 
 {% block content %}
-<!-- Aquí puedes agregar el contenido específico para la página Mis Trabajos -->
-<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <!-- Lista de trabajos -->
-        <ul>
-            <li>Trabajo 1</li>
-            <li>Trabajo 2</li>
-            <li>Trabajo 3</li>
-        </ul>
+<div class="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="bg-white p-4 md:p-6 rounded-md shadow-md">
+        <!-- Filtro de fechas -->
+        <div class="flex flex-wrap justify-between items-center pb-4">
+            <h2 class="text-gray-600 font-semibold text-sm md:text-base">Trabajos Recientes</h2>
+            <div class="flex flex-wrap items-center gap-4 mt-2 md:mt-0">
+                <!-- Desde -->
+        <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+            <label for="from-date" class="text-gray-600 text-xs md:text-sm md:mr-2">Desde:</label>
+            <input id="from-date" type="date" class="border rounded-md px-2 py-1 text-xs md:text-sm" />
+        </div>
+        <!-- Hasta -->
+        <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+            <label for="to-date" class="text-gray-600 text-xs md:text-sm md:mr-2">Hasta:</label>
+            <input id="to-date" type="date" class="border rounded-md px-2 py-1 text-xs md:text-sm" />
+        </div>
+                
+
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white shadow-md rounded-lg">
+                <thead class="bg-pink-200">
+                    <tr>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Usuario</th>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Trabajo</th>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Fecha</th>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Fila 1 -->
+                    <tr class="border-b">
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">user</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">trabajos</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">21/10/2025</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">$10</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">user</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">trabajos</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">21/10/2025</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">$10</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">user</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">trabajos</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">21/10/2025</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">$10</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">user</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">trabajos</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">21/10/2025</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">$10</td>
+                    </tr>
+                    <!-- Más filas aquí -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
