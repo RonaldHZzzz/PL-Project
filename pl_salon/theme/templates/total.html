@@ -8,27 +8,33 @@
 
 {% block content %}
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4">
-        <!-- Totales -->
+    <!-- Totales -->
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-6">
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
-            <h2 class="text-xl font-bold">Total Semanal</h2>
-            <p class="text-2xl">${{ total_semanal }}</p>
+            <h2 class="text-sm font-bold lg:text-xl">Total Semanal</h2>
+            <p class="text-lg lg:text-2xl">${{ total_semanal }}</p>
         </div>
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
-            <h2 class="text-xl font-bold">Total Mensual</h2>
-            <p class="text-2xl">${{ total_mensual }}</p>
+            <h2 class="text-sm font-bold lg:text-xl">Total Mensual</h2>
+            <p class="text-lg lg:text-2xl">${{ total_mensual }}</p>
         </div>
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
-            <h2 class="text-xl font-bold">Total Descontado</h2>
-            <p class="text-2xl">${{ total_descontado }}</p>
+            <h2 class="text-sm font-bold lg:text-xl">Total Descontado</h2>
+            <p class="text-lg lg:text-2xl text-red-500">
+                ${{ total_descontado }} 
+                
+            </p>
         </div>
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
-            <h2 class="text-xl font-bold">Total Final</h2>
-            <p class="text-2xl">${{ total_final }}</p>
+            <h2 class="text-sm font-bold lg:text-xl">Total Final</h2>
+            <p class="text-lg lg:text-2xl">${{ total_final }}</p>
         </div>
+    </div>
 
+    <!-- Formulario y lista en diseño responsivo -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Formulario -->
-        <div class="col-span-1 sm:col-span-2 bg-white p-4 rounded shadow-md">
+        <div class="bg-white p-4 rounded shadow-md">
             <h3 class="text-lg font-semibold text-center">Registrar descuento</h3>
             <form method="POST" class="space-y-4">
                 {% csrf_token %}
@@ -73,7 +79,7 @@
         </div>
 
         <!-- Lista de Descuentos -->
-        <div class="col-span-1 sm:col-span-2 bg-white p-4 rounded shadow-md">
+        <div class="bg-white p-4 rounded shadow-md">
             <h3 class="text-lg font-semibold">Lista de Descuentos</h3>
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -98,15 +104,15 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <!-- Gráfica -->
-        <div class="col-span-1 sm:col-span-2 md:col-span-4 bg-white p-4 rounded shadow-md">
-            <h3 class="text-lg font-semibold">Total Semanal</h3>
-            <canvas id="totalSemanalChart"></canvas>
-        </div>
+    <!-- Gráfica -->
+    <div class="col-span-4 bg-white p-4 rounded shadow-md mt-6">
+        <h3 class="text-lg font-semibold">Total Semanal</h3>
+        <canvas id="totalSemanalChart"></canvas>
     </div>
 </div>
-
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 <!-- Gráfica con Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -116,7 +122,7 @@
         data: {
             labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
             datasets: [{
-                label: 'Total ($)',
+                label: 'Descuentos ($)',
                 data: [20, 30, 40, 25, 35, 50, 70],  // Reemplazar con datos reales
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
                 borderColor: 'rgba(255, 99, 132, 1)',
