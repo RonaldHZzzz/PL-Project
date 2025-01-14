@@ -1,5 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.db import IntegrityError
@@ -126,6 +126,17 @@ def jobs(request):
 @login_required
 def total(request):
     return render(request,'total.html')
+
+def eliminar_trabajo(request, trabajo_id):
+    # Usamos get_object_or_404 para obtener el trabajo o devolver un error 404 si no se encuentra
+    trabajo = get_object_or_404(Trabajo, id=trabajo_id)
+
+    # Verificamos si la solicitud es un POST, lo que indica que el usuario confirma la eliminación
+    if request.method == 'POST':
+        trabajo.delete()  # Eliminamos el trabajo
+        return redirect('jobs')  # Redirigimos a la lista de trabajos
+
+    return redirect('jobs')  # Si no es un POST, simplemente redirigimos sin eliminar
           
 
         

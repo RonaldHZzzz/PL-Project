@@ -26,6 +26,8 @@ urlpatterns = [
     path('logout/',views.signout,name='logout'),
     path('jobs/',views.jobs,name='jobs'),
     path('total/',views.total,name='total'),
+    path('eliminar_trabajo/<int:trabajo_id>/',views.eliminar_trabajo, name='eliminar_trabajo')
+
     
     
-]   
+]  

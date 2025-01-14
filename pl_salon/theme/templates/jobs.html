@@ -47,7 +47,7 @@
                         <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">${{ trabajo.monto }}</td>
                         <td class="px-2 md:px-4 py-2 text-xs md:text-sm">
                             <!-- Botón de eliminar -->
-                            <form id="delete-form-{{ trabajo.id }}" method="POST" style="display: inline;">
+                            <form id="delete-form-{{ trabajo.id }}" action="{% url 'eliminar_trabajo' trabajo.id %}" method="POST" style="display: inline;">
                                 {% csrf_token %}
                                 <button type="button" onclick="confirmDelete({{ trabajo.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm">Eliminar</button>
                             </form>
