@@ -36,9 +36,8 @@
         <!-- Formulario -->
         <div class="bg-white p-4 rounded shadow-md">
             <h3 class="text-lg font-semibold text-center">Registrar descuento</h3>
-            <form method="POST" class="space-y-4">
+            <form method="POST" action="{% url 'total' %}" class="space-y-4">
                 {% csrf_token %}
-                <!-- Campo para ingresar la descripción -->
                 <div>
                     <label for="descripcion" class="block text-sm font-medium text-gray-700">Ingrese qué se descontó</label>
                     <input
@@ -50,15 +49,13 @@
                         required
                     >
                 </div>
-
-                <!-- Campo para ingresar el monto -->
                 <div>
-                    <label for="monto" class="block text-sm font-medium text-gray-700">Ingrese monto a descontar</label>
+                    <label for="descuento" class="block text-sm font-medium text-gray-700">Ingrese monto a descontar</label>
                     <div class="flex items-center mt-1">
                         <input
                             type="number"
-                            id="monto"
-                            name="monto"
+                            id="descuento"
+                            name="descuento"
                             class="block w-full rounded-l-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm"
                             step="0.01"
                             placeholder="0.00"
@@ -67,8 +64,6 @@
                         <span class="inline-flex items-center px-3 rounded-r-md bg-gray-50 border border-l-0 border-gray-300 text-gray-500 text-sm">$</span>
                     </div>
                 </div>
-
-                <!-- Botón para registrar -->
                 <button
                     type="submit"
                     class="w-full bg-pink-500 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
@@ -93,8 +88,8 @@
                     {% for descuento in descuentos %}
                     <tr>
                         <td class="border-b px-4 py-2">{{ descuento.descripcion }}</td>
-                        <td class="border-b px-4 py-2">{{ descuento.fecha }}</td>
-                        <td class="border-b px-4 py-2">${{ descuento.monto }}</td>
+                        <td class="border-b px-4 py-2">{{ descuento.fecha_registro_descuento }}</td>
+                        <td class="border-b px-4 py-2">${{ descuento.descuento }}</td>
                     </tr>
                     {% empty %}
                     <tr>

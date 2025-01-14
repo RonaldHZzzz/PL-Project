@@ -6,8 +6,8 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Trabajo
-from .forms import TrabajoForm
+from .models import Trabajo, Descuentos
+from .forms import TrabajoForm, DescuentoForm
 from django.db.models import Sum
 
 
@@ -75,7 +75,7 @@ def home(request):
         form = TrabajoForm()
     
     # Obtener los trabajos del usuario actual
-        trabajos = Trabajo.objects.filter(usuario=request.user)#esto solo en caso de filtrar
+        trabajos = Trabajo.objects.filter(usuario=request.user).order_by('-fecha_registro')#esto solo en caso de filtrar
     
     return render(request, 'home.html', {'form': form, 'trabajos': trabajos})
 
@@ -126,37 +126,74 @@ def jobs(request):
 
 @login_required
 def total(request):
-    #obtener la fecha actual
-    hoy=datetime.date.today()
+    # Obtener la fecha actual
+    hoy = datetime.date.today()
+
+    # Obtener el número de la semana actual y el año
+    semana_actual = hoy.isocalendar()[1]  # Número de semana actual
+    anio_actual = hoy.year  # Año actual
+    mes_actual = hoy.month  # Mes actual
+
+    # Filtrar los trabajos de la semana actual
+    trabajos_semanales = Trabajo.objects.filter(
+        fecha_registro__year=anio_actual, 
+        fecha_registro__week=semana_actual
+    )
+
+    # Calcular el total de las ganancias de la semana actual
+    total_semanal = trabajos_semanales.aggregate(Sum('monto'))['monto__sum'] or 0
+
+    # Filtrar los trabajos del mes actual
+    trabajos_mensuales = Trabajo.objects.filter(
+        fecha_registro__year=anio_actual, 
+        fecha_registro__month=mes_actual
+    )
+
+    # Calcular el total de las ganancias del mes actual
+    total_mensual = trabajos_mensuales.aggregate(Sum('monto'))['monto__sum'] or 0
+
+    if request.method == 'POST':
+        descripcion = request.POST.get('descripcion')
+        descuento = request.POST.get('descuento')
+
+        try:
+            descuento = float(descuento)
+            if descuento <= 0:
+                messages.error(request, "El descuento debe ser mayor que 0.")
+                return redirect('total')
+        except ValueError:
+            messages.error(request, "Por favor, introduce un monto válido.")
+            return redirect('total')
+
+        # Registrar el descuento
+        Descuentos.objects.create(
+            usuario=request.user,
+            descripcion=descripcion,
+            descuento=descuento,
+            fecha_registro_descuento=hoy
+        )
+        messages.success(request, "El descuento se ha registrado con éxito.")
+        return redirect('total')
+
+    # Obtener todos los descuentos del usuario actual
+    descuentos = Descuentos.objects.filter(usuario=request.user).order_by('-fecha_registro_descuento')
+
+    # Calcular totales descontados
+    total_descontado = descuentos.aggregate(Sum('descuento'))['descuento__sum'] or 0
     
-    #obtener el numero de la semana actual y el año
-    semana_actual= hoy.isocalendar()[1] #numero de semana actual
-    anio_actual= hoy.year # obtiene el año actual
-    
-    #filtrar los trabajos de la semana actual
-    trabajos_semanales=Trabajo.objects.filter(fecha_registro__year=anio_actual,fecha_registro__week=semana_actual)
-    
-    #calcular total de las ganancias de la semana actual
-    total_semanal=trabajos_semanales.aggregate(Sum('monto'))['monto__sum'] or 0
-    
-    #pasar el tatal semanal a la plantilla
-    
-    context={
-        'total_semanal':total_semanal
+    #calcular total final
+    total_final=total_semanal-total_descontado
+
+    # Contexto para la plantilla
+    context = {
+        'total_semanal': total_semanal,
+        'total_mensual': total_mensual,
+        'total_descontado': total_descontado,
+        'descuentos': descuentos,
+        'total_final':total_final
     }
-    
-    
-    
-    return render(request,'total.html',context)
 
-
-
-
-
-
-
-
-
+    return render(request, 'total.html', context)
 
 
 def eliminar_trabajo(request, trabajo_id):
@@ -171,4 +208,9 @@ def eliminar_trabajo(request, trabajo_id):
     return redirect('jobs')  # Si no es un POST, simplemente redirigimos sin eliminar
           
 
-        
+
+    
+    
+    
+    
+    
