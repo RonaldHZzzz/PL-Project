@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users',
     'tailwind',
     'theme',
+
     
 ]
 
@@ -112,9 +113,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'es-es'
+TIME_ZONE = 'America/El_Salvador'
 
 USE_I18N = True
 
@@ -134,3 +134,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NPM_BIN_PATH = 'npm.cmd'
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+

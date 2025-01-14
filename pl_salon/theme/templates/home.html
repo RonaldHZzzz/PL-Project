@@ -9,25 +9,40 @@
 {% block content %}
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
     <div class="bg-white p-6 rounded-lg shadow-md">
-        <div class="flex flex-col items-center py-6">
+        <form method="post" class="flex flex-col items-center py-6">
+            {% csrf_token %}
             <!-- Trabajo -->
             <label for="trabajo" class="text-lg font-semibold mb-2 text-center">Trabajo realizado</label>
-            <input type="text" id="trabajo" placeholder="Escribe aquí"
+            <input type="text" name="trabajo" id="trabajo" placeholder="Escribe aquí"
                    class="w-full max-w-xs rounded-lg border border-gray-300 p-3 shadow-sm mb-6">
 
             <!-- Monto -->
             <label for="monto" class="text-lg font-semibold mb-2 text-center">Monto</label>
             <div class="flex items-center space-x-2 justify-center">
-                <input type="text" id="monto" placeholder="00.00"
+                <input type="number" step="0.01" name="monto" id="monto" placeholder="00.00"
                        class="w-24 ml-6 rounded-lg border border-gray-300 p-3 shadow-sm text-center">
                 <span class="text-lg font-bold">$</span>
             </div>
 
             <!-- Botón -->
-            <button type="button"
+            <button type="submit"
                     class="mt-6 w-60 bg-pink-300 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-pink-500">
                 Guardar
             </button>
+        </form>
+
+        <!-- Lista de trabajos -->
+        <div class="mt-10">
+            <h2 class="text-xl font-bold mb-4">Trabajos registrados</h2>
+            <ul>
+                {% for trabajo in trabajos %}
+                    <li class="border-b border-gray-300 py-2">
+                        <strong>{{ trabajo.usuario }}</strong>  <strong>{{ trabajo.trabajo }}</strong>- ${{ trabajo.monto }} ({{ trabajo.fecha_registro }})
+                    </li>
+                {% empty %}
+                    <p>No hay trabajos registrados.</p>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 </div>

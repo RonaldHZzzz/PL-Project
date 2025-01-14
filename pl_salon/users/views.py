@@ -5,6 +5,9 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from .models import Trabajo
+from .forms import TrabajoForm
+
 
 
 
@@ -54,10 +57,25 @@ def register(request):
                 'form': UserCreationForm(),
                 'error': f'Ocurrió un error inesperado: {e}'
             })
-
+            
 @login_required
 def home(request):
-    return render(request, 'home.html')
+    if request.method == 'POST':
+        form = TrabajoForm(request.POST)
+        if form.is_valid():
+            trabajo = form.save(commit=False)
+            trabajo.usuario = request.user  # Asociar el trabajo con el usuario actual
+            trabajo.save()
+            messages.success(request, 'Trabajo registrado exitosamente.')
+            return redirect('home')  # Redirigir a la misma página después de guardar
+        else:
+            messages.error(request, 'Hubo un error al registrar el trabajo.')
+    else:
+        form = TrabajoForm()
+    
+    # Obtener los trabajos del usuario actual
+    # trabajos = Trabajo.objects.filter(usuario=request.user) esto solo en caso de filtrar
+    return render(request, 'home.html', {'form': form, 'trabajos': trabajos,})
 
 @login_required
 def signout(request):
