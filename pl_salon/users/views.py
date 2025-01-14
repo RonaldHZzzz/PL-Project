@@ -74,8 +74,9 @@ def home(request):
         form = TrabajoForm()
     
     # Obtener los trabajos del usuario actual
-    # trabajos = Trabajo.objects.filter(usuario=request.user) esto solo en caso de filtrar
-    return render(request, 'home.html', {'form': form, 'trabajos': trabajos,})
+        trabajos = Trabajo.objects.filter(usuario=request.user)#esto solo en caso de filtrar
+    #trabajos = Trabajo.objects.all()
+    return render(request, 'home.html', {'form': form, 'trabajos': trabajos})
 
 @login_required
 def signout(request):
@@ -106,7 +107,21 @@ def signin(request):
         
 @login_required
 def jobs(request):
-    return render(request,'jobs.html')
+    # Obtener las fechas desde el formulario
+    from_date = request.GET.get('from-date')
+    to_date = request.GET.get('to-date')
+
+    # Filtrar los trabajos si las fechas están presentes
+    if from_date and to_date:
+        trabajos = Trabajo.objects.filter(
+            fecha__gte=from_date,  # fecha mayor o igual a 'Desde'
+            fecha__lte=to_date     # fecha menor o igual a 'Hasta'
+        )
+    else:
+        # Si no se proporciona ningún filtro, obtener todos los trabajos
+        trabajos = Trabajo.objects.all()
+
+    return render(request, 'jobs.html', {'trabajos': trabajos})
 
 @login_required
 def total(request):
