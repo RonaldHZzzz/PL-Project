@@ -1,3 +1,4 @@
+import datetime
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -7,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Trabajo
 from .forms import TrabajoForm
-
+from django.db.models import Sum
 
 
 
@@ -75,7 +76,7 @@ def home(request):
     
     # Obtener los trabajos del usuario actual
         trabajos = Trabajo.objects.filter(usuario=request.user)#esto solo en caso de filtrar
-    #trabajos = Trabajo.objects.all()
+    
     return render(request, 'home.html', {'form': form, 'trabajos': trabajos})
 
 @login_required
@@ -125,7 +126,38 @@ def jobs(request):
 
 @login_required
 def total(request):
-    return render(request,'total.html')
+    #obtener la fecha actual
+    hoy=datetime.date.today()
+    
+    #obtener el numero de la semana actual y el año
+    semana_actual= hoy.isocalendar()[1] #numero de semana actual
+    anio_actual= hoy.year # obtiene el año actual
+    
+    #filtrar los trabajos de la semana actual
+    trabajos_semanales=Trabajo.objects.filter(fecha_registro__year=anio_actual,fecha_registro__week=semana_actual)
+    
+    #calcular total de las ganancias de la semana actual
+    total_semanal=trabajos_semanales.aggregate(Sum('monto'))['monto__sum'] or 0
+    
+    #pasar el tatal semanal a la plantilla
+    
+    context={
+        'total_semanal':total_semanal
+    }
+    
+    
+    
+    return render(request,'total.html',context)
+
+
+
+
+
+
+
+
+
+
 
 def eliminar_trabajo(request, trabajo_id):
     # Usamos get_object_or_404 para obtener el trabajo o devolver un error 404 si no se encuentra
