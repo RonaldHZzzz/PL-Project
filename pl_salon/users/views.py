@@ -114,8 +114,8 @@ def jobs(request):
     # Filtrar los trabajos si las fechas están presentes
     if from_date and to_date:
         trabajos = Trabajo.objects.filter(
-            fecha__gte=from_date,  # fecha mayor o igual a 'Desde'
-            fecha__lte=to_date     # fecha menor o igual a 'Hasta'
+            fecha_registro__gte=from_date,  # fecha mayor o igual a 'Desde'
+            fecha_registro__lte=to_date     # fecha menor o igual a 'Hasta'
         )
     else:
         # Si no se proporciona ningún filtro, obtener todos los trabajos
