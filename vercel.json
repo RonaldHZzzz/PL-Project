@@ -12,6 +12,6 @@
         }
     ],
     "hooks": {
-        "build": "python3 manage.py migrate"
+        "build": "python manage.py migrate"
     }
 }
