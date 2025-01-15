@@ -95,7 +95,7 @@ DATABASES = {
     }
 }
 
-}
+
 
 
 # Password validation
