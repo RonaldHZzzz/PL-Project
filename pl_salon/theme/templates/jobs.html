@@ -3,7 +3,7 @@
 {% block title %}Mis Trabajos{% endblock %}
 
 {% block header %}
-<h1 class="text-xl md:text-2xl font-bold tracking-tight text-gray-900">Trabajos</h1>
+<h1 class="text-xl md:text-2xl font-bold tracking-tight text-gray-900">Trabajos/Descuentos</h1>
 {% endblock %}
 
 {% block content %}
@@ -26,7 +26,7 @@
             </form>
         </div>
 
-        <!-- Tabla -->
+        <!-- Tabla1 -->
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white shadow-md rounded-lg">
                 <thead class="bg-pink-200">
@@ -61,8 +61,55 @@
                 </tbody>
             </table>
         </div>
-    </div>
+
 </div>
+{% comment %} descuentos {% endcomment %}
+<div class="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="bg-white p-4 md:p-6 rounded-md shadow-md">
+        <!-- Filtro de fechas -->
+        <div class="flex flex-wrap justify-between items-center pb-4">
+            <h2 class="text-gray-600 font-semibold text-sm md:text-base">Descuentos Recientes</h2>
+            
+        </div>
+
+        <!-- Tabla1 -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white shadow-md rounded-lg">
+                <thead class="bg-pink-200">
+                    <tr>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Usuario</th>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">descripcion</th>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Fecha</th>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">descuento</th>
+                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Acciones</th> <!-- Nueva columna de acciones -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for descuento in descuentos %}
+                    <tr class="border-b">
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">{{ descuento.usuario.username }}</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">{{ descuento.descripcion }}</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">{{ descuento.fecha_registro_descuento }}</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">${{ descuento.descuento }}</td>
+                        <td class="px-2 md:px-4 py-2 text-xs md:text-sm">
+                            <!-- Botón de eliminar -->
+                            <form id="delete-form-{{ descuento.id }}" action="{% url 'eliminar_descuento' descuento.id %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="button" onclick="confirmDelete({{ descuento.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center px-2 md:px-4 py-2 text-xs md:text-sm text-gray-600">No hay trabajos registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+</div>
+
 
 <!-- Modal de confirmación -->
 <div id="confirmation-modal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">

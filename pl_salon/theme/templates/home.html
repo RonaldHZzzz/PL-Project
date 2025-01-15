@@ -38,7 +38,7 @@
             <ul>
                 {% for trabajo in trabajos %}
                     <li class="border-b border-gray-300 py-2">
-                        <strong>{{ trabajo.usuario }}</strong>  <strong>{{ trabajo.trabajo }}</strong>- ${{ trabajo.monto }} ({{ trabajo.fecha_registro }})
+                        <strong>{{ trabajo.usuario }}</strong> {{ trabajo.trabajo }}-<strong> ${{ trabajo.monto }}</strong> ({{ trabajo.fecha_registro }})
                     </li>
                 {% empty %}
                     <p>No hay trabajos registrados.</p>

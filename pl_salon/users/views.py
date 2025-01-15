@@ -121,8 +121,15 @@ def jobs(request):
     else:
         # Si no se proporciona ningún filtro, obtener todos los trabajos
         trabajos = Trabajo.objects.all()
+          # Obtener todos los descuentos del usuario actual
+    descuentos = Descuentos.objects.all()
 
-    return render(request, 'jobs.html', {'trabajos': trabajos})
+    
+    context={
+            'trabajos':trabajos,
+            'descuentos':descuentos
+        }
+    return render(request, 'jobs.html',context)
 
 @login_required
 def total(request):
@@ -206,11 +213,14 @@ def eliminar_trabajo(request, trabajo_id):
         return redirect('jobs')  # Redirigimos a la lista de trabajos
 
     return redirect('jobs')  # Si no es un POST, simplemente redirigimos sin eliminar
-          
 
-
+def eliminar_descuento(request,descuento_id):
+    descuento=get_object_or_404(Descuentos,id=descuento_id)
+    if request.method=='POST':
+        descuento.delete()
+        return redirect('jobs')
     
-    
+    return redirect('jobs')
     
     
     
