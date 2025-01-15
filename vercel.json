@@ -1,5 +1,5 @@
 {
-    "builds" : [
+    "builds": [
         {
             "src": "pl_salon/wsgi.py",
             "use": "@vercel/python"
@@ -10,5 +10,8 @@
             "src": "/(.*)",
             "dest": "pl_salon/wsgi.py"
         }
-    ]
+    ],
+    "hooks": {
+        "build": "python3 manage.py migrate"
+    }
 }
