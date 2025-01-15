@@ -95,7 +95,7 @@
                             <!-- Botón de eliminar -->
                             <form id="delete-form-{{ descuento.id }}" action="{% url 'eliminar_descuento' descuento.id %}" method="POST" style="display: inline;">
                                 {% csrf_token %}
-                                <button type="button" onclick="confirmDelete({{ descuento.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm">Eliminar</button>
+                                <button type="button" onclick="confirmDelete({{ descuento.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm ml-auto">Eliminar</button>
                             </form>
                         </td>
                     </tr>

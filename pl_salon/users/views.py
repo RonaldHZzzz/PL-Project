@@ -13,6 +13,7 @@ from django.db.models import Sum
 
 
 
+
 def register(request):
     if request.user.is_authenticated:  # Verifica si el usuario ya está autenticado
         return redirect('home')  # Redirige a 'home'
@@ -131,76 +132,52 @@ def jobs(request):
         }
     return render(request, 'jobs.html',context)
 
+
+
 @login_required
 def total(request):
     # Obtener la fecha actual
     hoy = datetime.date.today()
-
-    # Obtener el número de la semana actual y el año
     semana_actual = hoy.isocalendar()[1]  # Número de semana actual
     anio_actual = hoy.year  # Año actual
     mes_actual = hoy.month  # Mes actual
 
-    # Filtrar los trabajos de la semana actual
+    # Filtrar los trabajos de la semana actual y agrupar por día de la semana
     trabajos_semanales = Trabajo.objects.filter(
         fecha_registro__year=anio_actual, 
         fecha_registro__week=semana_actual
-    )
+    ).annotate(dia_semana=ExtractWeekDay('fecha_registro')).values('dia_semana').annotate(total=Sum('monto'))
 
-    # Calcular el total de las ganancias de la semana actual
-    total_semanal = trabajos_semanales.aggregate(Sum('monto'))['monto__sum'] or 0
+    # Crear un diccionario para las ganancias diarias
+    ingresos_por_dia = {i: 0 for i in range(1, 8)}  # Días de la semana (1=Lunes, 7=Domingo)
+    for trabajo in trabajos_semanales:
+        ingresos_por_dia[trabajo['dia_semana']] = trabajo['total']
 
-    # Filtrar los trabajos del mes actual
-    trabajos_mensuales = Trabajo.objects.filter(
+    # Convertir a lista en orden (lunes a domingo)
+    ingresos_por_dia_lista = [ingresos_por_dia[dia] for dia in range(1, 8)]
+
+    # Filtrar y calcular totales mensuales, descuentos, etc., como antes
+    total_mensual = Trabajo.objects.filter(
         fecha_registro__year=anio_actual, 
         fecha_registro__month=mes_actual
-    )
+    ).aggregate(Sum('monto'))['monto__sum'] or 0
 
-    # Calcular el total de las ganancias del mes actual
-    total_mensual = trabajos_mensuales.aggregate(Sum('monto'))['monto__sum'] or 0
-
-    if request.method == 'POST':
-        descripcion = request.POST.get('descripcion')
-        descuento = request.POST.get('descuento')
-
-        try:
-            descuento = float(descuento)
-            if descuento <= 0:
-                messages.error(request, "El descuento debe ser mayor que 0.")
-                return redirect('total')
-        except ValueError:
-            messages.error(request, "Por favor, introduce un monto válido.")
-            return redirect('total')
-
-        # Registrar el descuento
-        Descuentos.objects.create(
-            usuario=request.user,
-            descripcion=descripcion,
-            descuento=descuento,
-            fecha_registro_descuento=hoy
-        )
-        messages.success(request, "El descuento se ha registrado con éxito.")
-        return redirect('total')
-
-    # Obtener todos los descuentos del usuario actual
     descuentos = Descuentos.objects.filter(usuario=request.user).order_by('-fecha_registro_descuento')
-
-    # Calcular totales descontados
     total_descontado = descuentos.aggregate(Sum('descuento'))['descuento__sum'] or 0
-    
-    #calcular total final
-    total_final=total_semanal-total_descontado
+    total_final = sum(ingresos_por_dia_lista) - total_descontado
 
     # Contexto para la plantilla
     context = {
-        'total_semanal': total_semanal,
+        'total_semanal': sum(ingresos_por_dia_lista),
         'total_mensual': total_mensual,
         'total_descontado': total_descontado,
         'descuentos': descuentos,
-        'total_final':total_final
+        'ingresos_por_dia_lista': ingresos_por_dia_lista,
+        'total_final': total_final
     }
 
     return render(request, 'total.html', context)
+
 
 
 def eliminar_trabajo(request, trabajo_id):
