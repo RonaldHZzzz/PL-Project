@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-2iy-0(!ut_8fq5e_x++rh*x76r6lhlof1t8_(g)-8yam!%r*=i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    '.vercel.app'
+   '.vercel.app', 'localhost', '127.0.0.1'
 ]
 
 # settings.py
@@ -53,7 +53,7 @@ TAILWIND_APP_NAME = 'theme'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,8 +80,8 @@ TEMPLATES = [
         },
     },
 ]
+WSGI_APPLICATION = 'pl_salon.wsgi.app'
 
-WSGI_APPLICATION = 'pl_salon.wsgi.application.app'
 
 
 # Database
@@ -131,8 +131,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT=    os.path.join(BASE_DIR,'staticfiles')
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
