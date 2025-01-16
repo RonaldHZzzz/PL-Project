@@ -93,7 +93,7 @@ DATABASES = {
         'NAME': 'db_pl_salon',
         'USER':'postgres',
         'PASSWORD':'Ronald2121/24-',
-        'HOST':'http://127.0.0.1:8000',
+        'HOST':'localhost',
         'PORT':'5432',
     }
 }
