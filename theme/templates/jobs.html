@@ -47,9 +47,9 @@
                         <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">${{ trabajo.monto }}</td>
                         <td class="px-2 md:px-4 py-2 text-xs md:text-sm">
                             <!-- Botón de eliminar -->
-                            <form id="delete-form-{{ trabajo.id }}" action="{% url 'eliminar_trabajo' trabajo.id %}" method="POST" style="display: inline;">
+                            <form id="delete-form-trabajo-{{ trabajo.id }}" action="{% url 'eliminar_trabajo' trabajo.id %}" method="POST" style="display: inline;">
                                 {% csrf_token %}
-                                <button type="button" onclick="confirmDelete({{ trabajo.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm">Eliminar</button>
+                                <button type="button" onclick="confirmDelete('trabajo', {{ trabajo.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm">Eliminar</button>
                             </form>
                         </td>
                     </tr>
@@ -93,9 +93,9 @@
                         <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-800">${{ descuento.descuento }}</td>
                         <td class="px-2 md:px-4 py-2 text-xs md:text-sm">
                             <!-- Botón de eliminar -->
-                            <form id="delete-form-{{ descuento.id }}" action="{% url 'eliminar_descuento' descuento.id %}" method="POST" style="display: inline;">
+                            <form id="delete-form-descuento-{{ descuento.id }}" action="{% url 'eliminar_descuento' descuento.id %}" method="POST" style="display: inline;">
                                 {% csrf_token %}
-                                <button type="button" onclick="confirmDelete({{ descuento.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm ml-auto">Eliminar</button>
+                                <button type="button" onclick="confirmDelete('descuento', {{ descuento.id }})" class="bg-red-500 text-white px-2 py-1 rounded-md text-xs md:text-sm">Eliminar</button>
                             </form>
                         </td>
                     </tr>
@@ -124,11 +124,13 @@
 </div>
 
 <script>
-    let deleteId = null;
+    let deleteType = null;  // Tipo de entidad a eliminar (trabajo o descuento)
+    let deleteId = null;    // ID del trabajo o descuento a eliminar
 
     // Función para mostrar el modal
-    function confirmDelete(id) {
-        deleteId = id; // Guardamos el ID del trabajo a eliminar
+    function confirmDelete(type, id) {
+        deleteType = type;  // Guardamos el tipo de entidad (trabajo o descuento)
+        deleteId = id;      // Guardamos el ID del trabajo o descuento a eliminar
         document.getElementById("confirmation-modal").classList.remove("hidden");
     }
 
@@ -139,12 +141,23 @@
 
     // Función para confirmar y enviar el formulario de eliminación
     document.getElementById("confirm-delete").addEventListener("click", function() {
-        if (deleteId !== null) {
-            document.getElementById("delete-form-" + deleteId).submit(); // Enviar el formulario correspondiente
-            closeModal(); // Cerrar el modal
+        if (deleteId !== null && deleteType !== null) {
+            // Determinamos el formulario a enviar según el tipo (trabajo o descuento)
+            let formId = deleteType === 'trabajo' ? 'delete-form-trabajo-' + deleteId : 'delete-form-descuento-' + deleteId;
+            document.getElementById(formId).submit();  // Enviar el formulario correspondiente
+            closeModal();  // Cerrar el modal
         }
     });
 
+    // Cerrar el modal si se hace clic fuera de él
+    window.onclick = function(event) {
+        var modal = document.getElementById("confirmation-modal");
+        if (event.target == modal) {
+            closeModal();
+        }
+    };
+
+    // Función para validar y enviar el formulario con fechas
     function checkAndSubmit() {
         // Obtener los valores de las fechas
         var fromDate = document.getElementById("from-date").value;
@@ -154,8 +167,13 @@
         if (fromDate && toDate) {
             // Si ambos están completos, enviar el formulario automáticamente
             document.getElementById("filter-form").submit();
+        } else {
+            // Si no están completos, mostrar un mensaje de advertencia
+            alert("Por favor, complete ambas fechas antes de enviar.");
         }
     }
 </script>
+
+
 
 {% endblock %}

@@ -87,18 +87,16 @@ WSGI_APPLICATION = 'pl_salon.wsgi.app'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-import os
-
-import os
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join('/tmp', 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db_pl_salon',
+        'USER':'postgres',
+        'PASSWORD':'Ronald2121/24-',
+        'HOST':'localhost',
+        'PORT':'5432',
     }
 }
-
 
 
 # Password validation

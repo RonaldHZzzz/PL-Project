@@ -9,9 +9,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Trabajo, Descuentos
 from .forms import TrabajoForm, DescuentoForm
 from django.db.models import Sum
-
-
-
+from django.db.models.functions import ExtractWeekDay
 
 
 def register(request):
@@ -132,39 +130,52 @@ def jobs(request):
         }
     return render(request, 'jobs.html',context)
 
-
-
 @login_required
 def total(request):
     # Obtener la fecha actual
     hoy = datetime.date.today()
-    semana_actual = hoy.isocalendar()[1]  # Número de semana actual
-    anio_actual = hoy.year  # Año actual
-    mes_actual = hoy.month  # Mes actual
+    semana_actual = hoy.isocalendar()[1]
+    anio_actual = hoy.year
+    mes_actual = hoy.month
 
-    # Filtrar los trabajos de la semana actual y agrupar por día de la semana
+    # Obtener trabajos semanales con anotación de día de la semana
     trabajos_semanales = Trabajo.objects.filter(
         fecha_registro__year=anio_actual, 
         fecha_registro__week=semana_actual
     ).annotate(dia_semana=ExtractWeekDay('fecha_registro')).values('dia_semana').annotate(total=Sum('monto'))
 
-    # Crear un diccionario para las ganancias diarias
-    ingresos_por_dia = {i: 0 for i in range(1, 8)}  # Días de la semana (1=Lunes, 7=Domingo)
+    # Ingresos diarios inicializados a 0
+    ingresos_por_dia = {i: 0 for i in range(1, 8)}
     for trabajo in trabajos_semanales:
         ingresos_por_dia[trabajo['dia_semana']] = trabajo['total']
 
-    # Convertir a lista en orden (lunes a domingo)
+    # Convertir a lista de lunes a domingo
     ingresos_por_dia_lista = [ingresos_por_dia[dia] for dia in range(1, 8)]
 
-    # Filtrar y calcular totales mensuales, descuentos, etc., como antes
+    # Total mensual
     total_mensual = Trabajo.objects.filter(
         fecha_registro__year=anio_actual, 
         fecha_registro__month=mes_actual
     ).aggregate(Sum('monto'))['monto__sum'] or 0
 
+    # Descuentos relacionados con el usuario
     descuentos = Descuentos.objects.filter(usuario=request.user).order_by('-fecha_registro_descuento')
     total_descontado = descuentos.aggregate(Sum('descuento'))['descuento__sum'] or 0
-    total_final = sum(ingresos_por_dia_lista) - total_descontado
+
+    # Calcular total final (evitar valores negativos)
+    total_final = max(0, sum(ingresos_por_dia_lista) - total_descontado)
+
+    # Procesar formulario de descuento
+    if request.method == 'POST':
+        descuento_form = DescuentoForm(request.POST)
+        if descuento_form.is_valid():
+            descuento = descuento_form.save(commit=False)
+            descuento.usuario = request.user  # Asociar el descuento con el usuario actual
+            descuento.save()
+            # Redirigir para mostrar el nuevo descuento sin hacer un POST duplicado
+            return redirect('total')  
+    else:
+        descuento_form = DescuentoForm()
 
     # Contexto para la plantilla
     context = {
@@ -173,7 +184,8 @@ def total(request):
         'total_descontado': total_descontado,
         'descuentos': descuentos,
         'ingresos_por_dia_lista': ingresos_por_dia_lista,
-        'total_final': total_final
+        'total_final': total_final,
+        'descuento_form': descuento_form,  # Añadir el formulario de descuento al contexto
     }
 
     return render(request, 'total.html', context)
@@ -187,17 +199,20 @@ def eliminar_trabajo(request, trabajo_id):
     # Verificamos si la solicitud es un POST, lo que indica que el usuario confirma la eliminación
     if request.method == 'POST':
         trabajo.delete()  # Eliminamos el trabajo
+        messages.success(request, 'Trabajo eliminado correctamente')  # Mensaje de éxito
         return redirect('jobs')  # Redirigimos a la lista de trabajos
 
-    return redirect('jobs')  # Si no es un POST, simplemente redirigimos sin eliminar
+    # Si no es un POST, mostramos una página de confirmación
+    return render(request, 'confirmar_eliminacion.html', {'trabajo': trabajo})
 
-def eliminar_descuento(request,descuento_id):
-    descuento=get_object_or_404(Descuentos,id=descuento_id)
-    if request.method=='POST':
+def eliminar_descuento(request, descuento_id):
+    descuento = get_object_or_404(Descuentos, id=descuento_id)
+    
+    if request.method == 'POST':
         descuento.delete()
-        return redirect('jobs')
+        messages.success(request, 'Descuento eliminado correctamente')
+        return redirect('jobs')  # Redirigir a la lista de trabajos o página correspondiente
     
-    return redirect('jobs')
-    
-    
+    # Si no es un POST, mostramos una página de confirmación
+    return render(request, 'confirmar_eliminacion.html', {'descuento': descuento})
     
