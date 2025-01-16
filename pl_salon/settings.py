@@ -97,12 +97,10 @@ ENVIRONMENT = config('DJANGO_ENV', default='development')
 
 if ENVIRONMENT == 'production':
     DATABASES = {
-    'default': dj_database_url.config(
-        # Replace this value with your local database's connection string.
-        default='postgresql://postgres:postgres@localhost:5432/mysite',
-        conn_max_age=600
-    )
-
+        'default': dj_database_url.config(
+            default=config('postgresql://db_pl_salon_user:qM5bib4SkV8HquuVlzgZ40JdEz5gW7aW@dpg-cu4komdds78s739v9c1g-a/db_pl_salon'),  # Usa la variable de entorno proporcionada por Render
+            conn_max_age=600  # Mantén conexiones persistentes para mejorar el rendimiento
+        )
     }
 else:  # Configuración local
     DATABASES = {
@@ -115,7 +113,6 @@ else:  # Configuración local
             'PORT': config('DB_PORT', default='5432'),
         }
     }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
