@@ -97,10 +97,12 @@ ENVIRONMENT = config('DJANGO_ENV', default='development')
 
 if ENVIRONMENT == 'production':
     DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
-            conn_max_age=600
-        )
+    'default': dj_database_url.config(
+        # Replace this value with your local database's connection string.
+        default='postgresql://postgres:postgres@localhost:5432/mysite',
+        conn_max_age=600
+    )
+
     }
 else:  # Configuración local
     DATABASES = {
