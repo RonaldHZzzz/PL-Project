@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -errexit
+set -o errexit
 
 #poetry install
 
