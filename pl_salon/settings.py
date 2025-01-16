@@ -98,7 +98,7 @@ ENVIRONMENT = config('DJANGO_ENV', default='development')
 if ENVIRONMENT == 'production':
     DATABASES = {
         'default': dj_database_url.config(
-            default=config('postgresql://db_pl_salon_user:qM5bib4SkV8HquuVlzgZ40JdEz5gW7aW@dpg-cu4komdds78s739v9c1g-a/db_pl_salon'),  # Usa la variable de entorno proporcionada por Render
+            default=config('postgresql://USER:PASSWORD@HOST:PORT/db_pl_salon'),  # Usa la variable de entorno proporcionada por Render
             conn_max_age=600  # Mantén conexiones persistentes para mejorar el rendimiento
         )
     }
