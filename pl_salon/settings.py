@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
-from decouple import config
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -85,34 +84,20 @@ TEMPLATES = [
         },
     },
 ]
-WSGI_APPLICATION = 'pl_salon.wsgi.application'
+WSGI_APPLICATION = 'pl_salon.wsgi.app'
 
 
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Obtener el entorno actual
-ENVIRONMENT = config('DJANGO_ENV', default='development')
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://USER:PASSWORD@HOST:5032/db_pl_salon',
+        conn_max_age=600
+    )
+}
 
-if ENVIRONMENT == 'production':
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('postgresql://USER:PASSWORD@HOST:PORT/db_pl_salon'),  # Usa la variable de entorno proporcionada por Render
-            conn_max_age=600  # Mantén conexiones persistentes para mejorar el rendimiento
-        )
-    }
-else:  # Configuración local
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='db_pl_salon'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default='Ronald2121/24-'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
-        }
-    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
