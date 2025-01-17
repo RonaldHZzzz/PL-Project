@@ -117,11 +117,16 @@ def jobs(request):
             fecha_registro__gte=from_date,  # fecha mayor o igual a 'Desde'
             fecha_registro__lte=to_date     # fecha menor o igual a 'Hasta'
         )
+        descuentos= Descuentos.objects.filter(
+           fecha_registro_descuento__gte=from_date,
+           fecha_registro_descuento__lte=to_date
+            
+        )
     else:
         # Si no se proporciona ningún filtro, obtener todos los trabajos
         trabajos = Trabajo.objects.all()
           # Obtener todos los descuentos del usuario actual
-    descuentos = Descuentos.objects.all()
+        descuentos = Descuentos.objects.all()
 
     
     context={
@@ -159,7 +164,7 @@ def total(request):
     ).aggregate(Sum('monto'))['monto__sum'] or 0
 
     # Descuentos relacionados con el usuario
-    descuentos = Descuentos.objects.filter(usuario=request.user).order_by('-fecha_registro_descuento')
+    descuentos = Descuentos.objects.all()
     total_descontado = descuentos.aggregate(Sum('descuento'))['descuento__sum'] or 0
 
     # Calcular total final (evitar valores negativos)

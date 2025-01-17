@@ -84,7 +84,7 @@ TEMPLATES = [
         },
     },
 ]
-WSGI_APPLICATION = 'pl_salon.wsgi.app'
+WSGI_APPLICATION = 'pl_salon.wsgi.application'
 
 
 
@@ -96,7 +96,19 @@ DATABASES = {
         default='postgresql://USER:PASSWORD@HOST:5032/db_pl_salon',
         conn_max_age=600
     )
+    #     'default':  {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'db_pl_salon',
+    #     'USER':'postgres',
+    #     'PASSWORD':'Ronald2121/24-',
+    #     'HOST':'localhost',
+    #     'PORT':'5432',
+    # }
+
+
 }
+
+
 
 
 # Password validation
