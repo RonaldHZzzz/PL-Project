@@ -118,8 +118,8 @@
         data: {
             labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
             datasets: [{
-                label: 'ingresos ($)',
-                data: [20, 30, 40, 25, 35, 50, 70],  // Reemplazar con datos reales
+                label: 'Ingresos ($)',
+                data: {{ ingresos_por_dia_lista|safe }},  // Pasar datos reales desde el contexto
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
@@ -134,4 +134,5 @@
         }
     });
 </script>
+
 {% endblock %}
