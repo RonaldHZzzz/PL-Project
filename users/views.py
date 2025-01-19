@@ -156,7 +156,7 @@ def total(request):
 
     # Convertir a lista de lunes a domingo
     ingresos_por_dia_lista = [ingresos_por_dia[dia] for dia in range(1, 8)]
-
+    print(f'prueba:{ingresos_por_dia_lista}')
     # Total mensual
     total_mensual = Trabajo.objects.filter(
         fecha_registro__year=anio_actual, 
