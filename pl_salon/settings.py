@@ -96,6 +96,7 @@ DATABASES = {
         default='postgresql://USER:PASSWORD@HOST:5032/db_pl_salon',
         conn_max_age=600
     )
+    
     #     'default':  {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'db_pl_salon',

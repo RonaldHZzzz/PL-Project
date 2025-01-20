@@ -137,63 +137,93 @@ def jobs(request):
 
 @login_required
 def total(request):
-    # Obtener la fecha actual
+    # Obtener la fecha actual y detalles de semana, mes y año
     hoy = datetime.date.today()
     semana_actual = hoy.isocalendar()[1]
     anio_actual = hoy.year
     mes_actual = hoy.month
 
-    # Obtener trabajos semanales con anotación de día de la semana
+    # Calcular ingresos semanales, agrupados por día de la semana
     trabajos_semanales = Trabajo.objects.filter(
-        fecha_registro__year=anio_actual, 
+        fecha_registro__year=anio_actual,
         fecha_registro__week=semana_actual
-    ).annotate(dia_semana=ExtractWeekDay('fecha_registro')).values('dia_semana').annotate(total=Sum('monto'))
+    ).annotate(
+        dia_semana=ExtractWeekDay('fecha_registro')
+    ).values('dia_semana').annotate(
+        total=Sum('monto')
+    )
 
-    # Ingresos diarios inicializados a 0
+    # Inicializar ingresos diarios a 0 (lunes a domingo)
     ingresos_por_dia = {i: 0 for i in range(1, 8)}
     for trabajo in trabajos_semanales:
         ingresos_por_dia[trabajo['dia_semana']] = trabajo['total']
 
-    # Convertir a lista de lunes a domingo
+    # Convertir los ingresos diarios a una lista (lunes a domingo)
     ingresos_por_dia_lista = [ingresos_por_dia[dia] for dia in range(1, 8)]
-    print(f'prueba:{ingresos_por_dia_lista}')
-    # Total mensual
+
+    # Calcular el total semanal de ingresos
+    total_semanal = sum(ingresos_por_dia_lista)
+
+    # Calcular descuentos semanales, agrupados por día de la semana
+    descuentos_semanales = Descuentos.objects.filter(
+        fecha_registro_descuento__year=anio_actual,
+        fecha_registro_descuento__week=semana_actual
+    ).annotate(
+        dia_semana=ExtractWeekDay('fecha_registro_descuento')
+    ).values('dia_semana').annotate(
+        total=Sum('descuento')
+    )
+
+    # Inicializar descuentos diarios a 0 (lunes a domingo)
+    descuentos_por_dia = {i: 0 for i in range(1, 8)}
+    for descuento in descuentos_semanales:
+        descuentos_por_dia[descuento['dia_semana']] = descuento['total']
+
+    # Convertir los descuentos diarios a una lista (lunes a domingo)
+    descuentos_por_dia_lista = [descuentos_por_dia[dia] for dia in range(1, 8)]
+
+    # Calcular el total semanal de descuentos
+    total_descuento_semanal = sum(descuentos_por_dia_lista)
+
+    # Calcular el total mensual
     total_mensual = Trabajo.objects.filter(
-        fecha_registro__year=anio_actual, 
+        fecha_registro__year=anio_actual,
         fecha_registro__month=mes_actual
     ).aggregate(Sum('monto'))['monto__sum'] or 0
 
-    # Descuentos relacionados con el usuario
-    descuentos = Descuentos.objects.all()
-    total_descontado = descuentos.aggregate(Sum('descuento'))['descuento__sum'] or 0
+    # Obtener descuentos totales y calcular el total descontado
+    total_descontado = Descuentos.objects.aggregate(Sum('descuento'))['descuento__sum'] or 0
 
-    # Calcular total final (evitar valores negativos)
-    total_final = max(0, sum(ingresos_por_dia_lista) - total_descontado)
+    # Calcular el total final (evitar valores negativos)
+    total_final = max(0, total_semanal - total_descuento_semanal)
 
-    # Procesar formulario de descuento
+    # Procesar el formulario de descuento
     if request.method == 'POST':
         descuento_form = DescuentoForm(request.POST)
         if descuento_form.is_valid():
             descuento = descuento_form.save(commit=False)
             descuento.usuario = request.user  # Asociar el descuento con el usuario actual
             descuento.save()
-            # Redirigir para mostrar el nuevo descuento sin hacer un POST duplicado
-            return redirect('total')  
+            # Redirigir para evitar duplicación del POST
+            return redirect('total')
     else:
         descuento_form = DescuentoForm()
 
-    # Contexto para la plantilla
+    # Contexto para pasar a la plantilla
     context = {
-        'total_semanal': sum(ingresos_por_dia_lista),
+        'total_semanal': total_semanal,
+        'total_descuento_semanal': total_descuento_semanal,
         'total_mensual': total_mensual,
         'total_descontado': total_descontado,
-        'descuentos': descuentos,
+        'descuentos': Descuentos.objects.all(),
         'ingresos_por_dia_lista': ingresos_por_dia_lista,
+        'descuentos_por_dia_lista': descuentos_por_dia_lista,
         'total_final': total_final,
-        'descuento_form': descuento_form,  # Añadir el formulario de descuento al contexto
+        'descuento_form': descuento_form,
     }
 
     return render(request, 'total.html', context)
+
 
 
 
