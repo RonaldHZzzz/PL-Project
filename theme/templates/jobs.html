@@ -28,14 +28,14 @@
 
         <!-- Tabla1 -->
         <div class="overflow-x-auto">
-            <table class="min-w-full bg-white shadow-md rounded-lg">
+            <table class="min-w-full table-fixed bg-white shadow-md rounded-lg">
                 <thead class="bg-pink-200">
                     <tr>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Usuario</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Trabajo</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Fecha</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Precio</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Acciones</th> <!-- Nueva columna de acciones -->
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Usuario</th>
+                        <th class="w-2/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Trabajo</th>
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Fecha</th>
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Precio</th>
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,27 +61,26 @@
                 </tbody>
             </table>
         </div>
-
+    </div>
 </div>
-{% comment %} descuentos {% endcomment %}
+
+<!-- Segunda tabla -->
 <div class="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
     <div class="bg-white p-4 md:p-6 rounded-md shadow-md">
-        <!-- Filtro de fechas -->
         <div class="flex flex-wrap justify-between items-center pb-4">
             <h2 class="text-gray-600 font-semibold text-sm md:text-base">Descuentos Recientes</h2>
-            
         </div>
 
-        <!-- Tabla1 -->
+        <!-- Tabla2 -->
         <div class="overflow-x-auto">
-            <table class="min-w-full bg-white shadow-md rounded-lg">
+            <table class="min-w-full table-fixed bg-white shadow-md rounded-lg">
                 <thead class="bg-pink-200">
                     <tr>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Usuario</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">descripcion</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Fecha</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">descuento</th>
-                        <th class="text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Acciones</th> <!-- Nueva columna de acciones -->
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Usuario</th>
+                        <th class="w-2/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Descripción</th>
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Fecha</th>
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Descuento</th>
+                        <th class="w-1/5 text-left px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-gray-700">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,21 +100,20 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center px-2 md:px-4 py-2 text-xs md:text-sm text-gray-600">No hay trabajos registrados.</td>
+                        <td colspan="5" class="text-center px-2 md:px-4 py-2 text-xs md:text-sm text-gray-600">No hay descuentos registrados.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
+    </div>
 </div>
-
 
 <!-- Modal de confirmación -->
 <div id="confirmation-modal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
     <div class="bg-white p-4 rounded-lg max-w-sm">
         <h2 class="text-lg font-semibold text-gray-700">¿Estás seguro?</h2>
-        <p class="text-sm text-gray-600">Este trabajo será eliminado permanentemente.</p>
+        <p class="text-sm text-gray-600">Este elemento será eliminado permanentemente.</p>
         <div class="mt-4 flex justify-between">
             <button onclick="closeModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md">Cancelar</button>
             <button id="confirm-delete" class="bg-red-500 text-white px-4 py-2 rounded-md">Eliminar</button>
@@ -124,56 +122,34 @@
 </div>
 
 <script>
-    let deleteType = null;  // Tipo de entidad a eliminar (trabajo o descuento)
-    let deleteId = null;    // ID del trabajo o descuento a eliminar
+    let deleteType = null;
+    let deleteId = null;
 
-    // Función para mostrar el modal
     function confirmDelete(type, id) {
-        deleteType = type;  // Guardamos el tipo de entidad (trabajo o descuento)
-        deleteId = id;      // Guardamos el ID del trabajo o descuento a eliminar
+        deleteType = type;
+        deleteId = id;
         document.getElementById("confirmation-modal").classList.remove("hidden");
     }
 
-    // Función para cerrar el modal
     function closeModal() {
         document.getElementById("confirmation-modal").classList.add("hidden");
     }
 
-    // Función para confirmar y enviar el formulario de eliminación
     document.getElementById("confirm-delete").addEventListener("click", function() {
         if (deleteId !== null && deleteType !== null) {
-            // Determinamos el formulario a enviar según el tipo (trabajo o descuento)
             let formId = deleteType === 'trabajo' ? 'delete-form-trabajo-' + deleteId : 'delete-form-descuento-' + deleteId;
-            document.getElementById(formId).submit();  // Enviar el formulario correspondiente
-            closeModal();  // Cerrar el modal
+            document.getElementById(formId).submit();
+            closeModal();
         }
     });
 
-    // Cerrar el modal si se hace clic fuera de él
-    window.onclick = function(event) {
-        var modal = document.getElementById("confirmation-modal");
-        if (event.target == modal) {
-            closeModal();
-        }
-    };
-
-    // Función para validar y enviar el formulario con fechas
     function checkAndSubmit() {
-        // Obtener los valores de las fechas
         var fromDate = document.getElementById("from-date").value;
         var toDate = document.getElementById("to-date").value;
 
-        // Verificar si ambos campos tienen valores
         if (fromDate && toDate) {
-            // Si ambos están completos, enviar el formulario automáticamente
             document.getElementById("filter-form").submit();
-        } else {
-            // Si no están completos, mostrar un mensaje de advertencia
-            alert("Por favor, complete ambas fechas antes de enviar.");
-        }
+        } 
     }
 </script>
-
-
-
 {% endblock %}
