@@ -190,6 +190,12 @@ def total(request):
         fecha_registro__year=anio_actual,
         fecha_registro__month=mes_actual
     ).aggregate(Sum('monto'))['monto__sum'] or 0
+    
+    #descuntos de la semana actual
+    descuento_semana_actual= Descuentos.objects.filter(
+    fecha_registro_descuento__year=anio_actual,
+    fecha_registro_descuento__week=semana_actual
+    )
 
     # Obtener descuentos totales y calcular el total descontado
     total_descontado = Descuentos.objects.aggregate(Sum('descuento'))['descuento__sum'] or 0
@@ -211,16 +217,21 @@ def total(request):
 
     # Contexto para pasar a la plantilla
     context = {
-        'total_semanal': total_semanal,
-        'total_descuento_semanal': total_descuento_semanal,
-        'total_mensual': total_mensual,
-        'total_descontado': total_descontado,
-        'descuentos': Descuentos.objects.all(),
-        'ingresos_por_dia_lista': ingresos_por_dia_lista,
-        'descuentos_por_dia_lista': descuentos_por_dia_lista,
-        'total_final': total_final,
-        'descuento_form': descuento_form,
+        'total_semanal': total_semanal,  # Total de ingresos acumulados en la semana actual.
+        'total_mensual': total_mensual,  # Total de ingresos acumulados en el mes actual.
+        'ingresos_por_dia_lista': ingresos_por_dia_lista,  # Lista de ingresos diarios en la semana actual (lunes a domingo). 
+        
+        'total_descuento_semanal': total_descuento_semanal,  # Total de descuentos aplicados durante la semana actual.
+        'total_descontado': total_descontado,  # Total global de descuentos aplicados (suma de todos los descuentos registrados).
+        'descuentos': Descuentos.objects.all(),  # Lista completa de descuentos registrados en la base de datos.
+        'descuentos_por_dia_lista': descuentos_por_dia_lista,  # Lista de descuentos diarios en la semana actual (lunes a domingo).
+        'descuento_semana_actual': descuento_semana_actual,  # Lista de descuentos aplicados únicamente en la semana actual.
+        
+        'descuento_form': descuento_form,  # Formulario para agregar nuevos descuentos, vinculado al usuario actual.
+        'total_final': total_final,  # Total final de ingresos de la semana actual después de aplicar descuentos (no negativo).
     }
+
+    
 
     return render(request, 'total.html', context)
 

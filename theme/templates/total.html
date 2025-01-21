@@ -85,12 +85,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for descuento in descuentos %}
+                    {% for descuento in descuento_semana_actual %}
                     <tr>
                         <td class="border-b px-4 py-2">{{ descuento.descripcion }}</td>
                         <td class="border-b px-4 py-2">{{ descuento.fecha_registro_descuento }}</td>
                         <td class="border-b px-4 py-2">${{ descuento.descuento }}</td>
-                        
                     </tr>
                     {% empty %}
                     <tr>
@@ -108,31 +107,6 @@
         <canvas id="totalSemanalChart"></canvas>
     </div>
 </div>
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-<!-- Gráfica con Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('totalSemanalChart').getContext('2d');
-    const totalSemanalChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-            datasets: [{
-                label: 'Ingresos ($)',
-                data: {{ ingresos_por_dia_lista|safe }},  // Pasar datos reales desde el contexto
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-</script>
+
 
 {% endblock %}
