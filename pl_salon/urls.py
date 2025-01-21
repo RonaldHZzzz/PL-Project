@@ -27,7 +27,8 @@ urlpatterns = [
     path('jobs/',views.jobs,name='jobs'),
     path('total/',views.total,name='total'),
     path('eliminar_trabajo/<int:trabajo_id>/',views.eliminar_trabajo, name='eliminar_trabajo'),
-    path('eliminar_descuento/<int:descuento_id>/',views.eliminar_descuento, name='eliminar_descuento')
+    path('eliminar_descuento/<int:descuento_id>/',views.eliminar_descuento, name='eliminar_descuento'),
+    path('reportes/',views.Report,name='reportes'),
     
     
 ]  

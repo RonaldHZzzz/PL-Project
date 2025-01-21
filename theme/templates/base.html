@@ -29,15 +29,15 @@
                 <div class="flex-1 flex items-center justify-start space-x-4">
 					<a href="/home/" class="rounded-md px-3 py-2 text-sm font-medium 
 						{% if request.path == '/home/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
-						Registro
+						Registros
 					</a>
 					<a href="/jobs/" class="rounded-md px-3 py-2 text-sm font-medium 
 						{% if request.path == '/jobs/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
-						trabajos
+						Trabajos
 					</a>
 					<a href="/total/" class="rounded-md px-3 py-2 text-sm font-medium 
 						{% if request.path == '/total/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
-						Total
+						Totales
 					</a>
 				</div>
 
@@ -51,6 +51,7 @@
                     <div id="user-menu" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 hidden" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
                         <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem">Tu Perfil</a>
                         <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem">Ajustes</a>
+                        <a href="{% url 'reportes' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem">Reportes</a>
                         <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem">Salir</a>
                     </div>
                 </div>
@@ -79,5 +80,8 @@
         menu.classList.toggle('hidden');
     }
 </script>
+ <!-- Aquí puedes incluir los scripts -->
+ <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+ {% block scripts %}{% endblock %}
 </body>
 </html>

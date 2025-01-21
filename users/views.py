@@ -110,6 +110,9 @@ def jobs(request):
     # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
     to_date = request.GET.get('to-date')
+    hoy = datetime.date.today()
+    semana_actual = hoy.isocalendar()[1]
+    anio_actual = hoy.year
 
     # Filtrar los trabajos si las fechas están presentes
     if from_date and to_date:
@@ -124,9 +127,15 @@ def jobs(request):
         )
     else:
         # Si no se proporciona ningún filtro, obtener todos los trabajos
-        trabajos = Trabajo.objects.all()
+        trabajos = Trabajo.objects.filter(
+        fecha_registro__year=anio_actual,
+        fecha_registro__week=semana_actual
+        )
           # Obtener todos los descuentos del usuario actual
-        descuentos = Descuentos.objects.all()
+        descuentos = Descuentos.objects.filter(
+        fecha_registro_descuento__year=anio_actual,
+        fecha_registro_descuento__week=semana_actual
+        )
 
     
     context={
@@ -231,24 +240,23 @@ def total(request):
         'total_final': total_final,  # Total final de ingresos de la semana actual después de aplicar descuentos (no negativo).
     }
 
-    
-
     return render(request, 'total.html', context)
 
 
+def Report(request):
+    
+   return render(request,'reportes.html')
 
 
 def eliminar_trabajo(request, trabajo_id):
-    # Usamos get_object_or_404 para obtener el trabajo o devolver un error 404 si no se encuentra
     trabajo = get_object_or_404(Trabajo, id=trabajo_id)
 
-    # Verificamos si la solicitud es un POST, lo que indica que el usuario confirma la eliminación
     if request.method == 'POST':
-        trabajo.delete()  # Eliminamos el trabajo
-        messages.success(request, 'Trabajo eliminado correctamente')  # Mensaje de éxito
-        return redirect('jobs')  # Redirigimos a la lista de trabajos
+        trabajo.delete()
+        messages.success(request, 'Trabajo eliminado correctamente')
+        return redirect('jobs')  # Redirigir a la lista de trabajos actualizada
 
-    # Si no es un POST, mostramos una página de confirmación
+    # Mostramos una página de confirmación
     return render(request, 'confirmar_eliminacion.html', {'trabajo': trabajo})
 
 def eliminar_descuento(request, descuento_id):
@@ -257,8 +265,8 @@ def eliminar_descuento(request, descuento_id):
     if request.method == 'POST':
         descuento.delete()
         messages.success(request, 'Descuento eliminado correctamente')
-        return redirect('jobs')  # Redirigir a la lista de trabajos o página correspondiente
+        return redirect('jobs')  # Redirigir a la lista de trabajos actualizada
     
-    # Si no es un POST, mostramos una página de confirmación
+    # Mostramos una página de confirmación
     return render(request, 'confirmar_eliminacion.html', {'descuento': descuento})
     

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Reportes{% endblock %}
+
+{% block header %}
+<!-- Aquí puedes agregar contenido específico para el header si lo necesitas -->
+{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-lg font-semibold mb-4 text-center">Generar reporte</h2>
+    
+    <!-- Selector de rango de fechas -->
+    <div id="date-range-picker" date-rangepicker class="flex items-center">
+        <div class="relative">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                </svg>
+            </div>
+            <input id="datepicker-range-start" name="start" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date start">
+        </div>
+        <span class="mx-4 text-gray-500">to</span>
+        <div class="relative">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                </svg>
+            </div>
+            <input id="datepicker-range-end" name="end" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date end">
+        </div>
+    </div>
+
+    <!-- Botones de opciones -->
+    <div class="grid grid-cols-3 gap-4 mt-4">
+        <button class="bg-purple-200 hover:bg-purple-300 text-purple-700 font-semibold py-2 px-4 rounded">Semanal</button>
+        <button class="bg-purple-200 hover:bg-purple-300 text-purple-700 font-semibold py-2 px-4 rounded">Mensual</button>
+        <button class="bg-purple-200 hover:bg-purple-300 text-purple-700 font-semibold py-2 px-4 rounded">Anual</button>
+        <button class="bg-purple-300 hover:bg-purple-400 text-purple-800 font-semibold py-2 px-4 rounded">Semana anterior</button>
+        <button class="bg-purple-300 hover:bg-purple-400 text-purple-800 font-semibold py-2 px-4 rounded">Mes anterior</button>
+        <button class="bg-purple-300 hover:bg-purple-400 text-purple-800 font-semibold py-2 px-4 rounded">Año anterior</button>
+    </div>
+</div>
+{% endblock %}
