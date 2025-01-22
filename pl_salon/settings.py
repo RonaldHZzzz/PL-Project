@@ -64,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'users.middlewares.SessionTimeoutMiddleware',
     
 ]
 
@@ -160,4 +161,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NPM_BIN_PATH = 'npm.cmd'
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+
+#configuracion para sesiones basaas en cookies
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Puedes usar 'cache' si prefieres almacenamiento en memoria
+
+# Configurar el tiempo de expiración (10 minutos = 600 segundos)
+SESSION_COOKIE_AGE = 600  # Tiempo en segundos antes de que expire la sesión
+
+# Expulsar al usuario después de la expiración de la sesión
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Cierra la sesión al cerrar el navegador
+SESSION_SAVE_EVERY_REQUEST = True  # Renueva la sesión con cada solicitud
+
 
