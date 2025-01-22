@@ -42,7 +42,13 @@ module.exports = {
         // '../../**/*.py'
     ],
     theme: {
-        extend: {},
+        extend: {
+            backdropBlur: {
+                xs: '2px',
+                lg: '10px', // ejemplo de otro valor que puedes agregar
+                xl: '20px', // o más
+              }
+        },
     },
     plugins: [
         /**
@@ -54,4 +60,5 @@ module.exports = {
         require('@tailwindcss/typography'),
         require('@tailwindcss/aspect-ratio'),
     ],
+    
 }
