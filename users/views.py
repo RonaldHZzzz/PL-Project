@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta,date
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -10,6 +10,10 @@ from .models import Trabajo, Descuentos
 from .forms import TrabajoForm, DescuentoForm
 from django.db.models import Sum
 from django.db.models.functions import ExtractWeekDay
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+import locale
 
 
 def register(request):
@@ -242,12 +246,58 @@ def total(request):
 
     return render(request, 'total.html', context)
 
-
+@login_required
 def Report(request):
+   
+    return render(request,'reportes.html')
+@login_required
+def generar_reporte_semanal(request):
     
-   return render(request,'reportes.html')
+    # Configura el idioma en español
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    # Obtener fechas de inicio y fin de la semana actual
+    hoy = date.today()  # Usa 'date' directamente en lugar de 'datetime.date'
+    inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
+    fin_semana = inicio_semana + timedelta(days=6)  # Domingo de la semana actual
+    
+    # Filtrar trabajos y descuentos por la semana actual
+    trabajos = Trabajo.objects.filter(fecha_registro__range=[inicio_semana, fin_semana])
+    descuentos = Descuentos.objects.filter(fecha_registro_descuento__range=[inicio_semana, fin_semana])
 
+    # Calcular totales
+    total_trabajos = sum(trabajo.monto for trabajo in trabajos)
+    total_descuentos = sum(descuento.descuento for descuento in descuentos)
+    # Formatea las fechas en español
+    inicio_semana_formateada = inicio_semana.strftime("%d de %B de %Y")
+    fin_semana_formateada = fin_semana.strftime("%d de %B de %Y")
 
+    # Preparar contexto para la plantilla
+    context = {
+        'trabajos': trabajos,
+        'descuentos': descuentos,
+        'inicio_semana': inicio_semana_formateada,
+        'fin_semana': fin_semana_formateada,
+        'total_trabajos': total_trabajos,
+        'total_descuentos': total_descuentos,
+        'neto': total_trabajos - total_descuentos,
+    }
+
+    # Renderizar la plantilla HTML
+    template = get_template('reporte_semanal.html')  # Crea esta plantilla
+    html = template.render(context)
+
+    # Crear el PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_semanal.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    # Verificar errores en la generación del PDF
+    if pisa_status.err:
+        return HttpResponse('Error al generar el PDF', status=500)
+
+    return response
+
+@login_required
 def eliminar_trabajo(request, trabajo_id):
     trabajo = get_object_or_404(Trabajo, id=trabajo_id)
 
@@ -259,6 +309,7 @@ def eliminar_trabajo(request, trabajo_id):
     # Mostramos una página de confirmación
     return render(request, 'confirmar_eliminacion.html', {'trabajo': trabajo})
 
+@login_required
 def eliminar_descuento(request, descuento_id):
     descuento = get_object_or_404(Descuentos, id=descuento_id)
     

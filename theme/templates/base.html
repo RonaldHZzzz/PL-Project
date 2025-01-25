@@ -28,20 +28,23 @@
                 </div>
 
                 <!-- Menu Principal -->
-                <div class="flex-1 flex items-center justify-start space-x-4">
-					<a href="/home/" class="rounded-md px-3 py-2 text-sm font-medium 
-						{% if request.path == '/home/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
-						Registros
-					</a>
-					<a href="/jobs/" class="rounded-md px-3 py-2 text-sm font-medium 
-						{% if request.path == '/jobs/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
-						Trabajos
-					</a>
-					<a href="/total/" class="rounded-md px-3 py-2 text-sm font-medium 
-						{% if request.path == '/total/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
-						Totales
-					</a>
-				</div>
+                <div class="flex-1 flex items-center justify-start space-x-2">
+                    <a href="/home/" class="rounded-md px-3 py-2 text-sm font-medium 
+                        {% if request.path == '/home/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
+                        <img src="{% static 'images/register.png' %}" alt="Registros" class="inline-block w-4 h-4 mr-2">
+                        Registros
+                    </a>
+                    <a href="/jobs/" class="rounded-md px-3 py-2 text-sm font-medium 
+                        {% if request.path == '/jobs/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
+                        <img src="{% static 'images/job.png' %}" alt="Trabajos" class="inline-block w-4 h-4 mr-2">
+                        Trabajos
+                    </a>
+                    <a href="/total/" class="rounded-md px-3 py-2 text-sm font-medium 
+                        {% if request.path == '/total/' %} bg-pink-500 text-white {% else %} text-black hover:bg-rose-300 hover:text-black {% endif %}">
+                        <img src="{% static 'images/total.png' %}" alt="Totales" class="inline-block w-4 h-4 mr-2">
+                        Totales
+                    </a>
+                </div>
 
                 <!-- Botón Usuario -->
                 <div class="relative">

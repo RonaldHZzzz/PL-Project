@@ -30,7 +30,7 @@
             <input id="datepicker-range-end" name="end" type="text" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5" placeholder="Fecha de fin">
         </div>
         <div class="relative" style="top: 10px;">
-            <button class="bg-red-300 hover:bg-red-300 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <button class="bg-red-300 hover:bg-red-400 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                 <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
                 Descargar
             </button>
@@ -42,10 +42,10 @@
 
     <!-- Botones de opciones -->
     <div class="grid grid-cols-2 gap-6 mt-8 md:grid-cols-3">
-        <button class="bg-pink-200 hover:bg-pink-300 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-            <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
+        <a href="{% url 'reporte_semanal' %}" class="bg-pink-200 hover:bg-pink-300 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <img src="{% static 'images/download.png' %}" alt="icono" class="h-5 w-5" />
             Semanal
-        </button>
+        </a>
         <button class="bg-pink-300 hover:bg-pink-400 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
             <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
             Semana anterior
