@@ -114,7 +114,7 @@ def jobs(request):
     # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
     to_date = request.GET.get('to-date')
-    hoy = datetime.date.today()
+    hoy = date.today()
     semana_actual = hoy.isocalendar()[1]
     anio_actual = hoy.year
 
@@ -151,7 +151,7 @@ def jobs(request):
 @login_required
 def total(request):
     # Obtener la fecha actual y detalles de semana, mes y año
-    hoy = datetime.date.today()
+    hoy = date.today()
     semana_actual = hoy.isocalendar()[1]
     anio_actual = hoy.year
     mes_actual = hoy.month
@@ -250,6 +250,7 @@ def total(request):
 def Report(request):
    
     return render(request,'reportes.html')
+
 @login_required
 def generar_reporte_semanal(request):
     
