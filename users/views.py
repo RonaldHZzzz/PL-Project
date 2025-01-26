@@ -255,7 +255,7 @@ def Report(request):
 def generar_reporte_semanal(request):
     
     # Configura el idioma en español
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    locale.setlocale(locale.LC_TIME, 'es_ES')  # O inténtalo con 'C'
     # Obtener fechas de inicio y fin de la semana actual
     hoy = date.today()  # Usa 'date' directamente en lugar de 'datetime.date'
     inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
