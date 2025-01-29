@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY',default='your secret key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = []
 
@@ -143,23 +143,21 @@ USE_I18N = True
 
 USE_TZ = True
 
-# URL base para los archivos estáticos
 STATIC_URL = '/static/'
 
-# Directorios adicionales para buscar archivos estáticos
+# Directorios adicionales para buscar archivos estáticos en desarrollo
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Directorio estático en desarrollo
+    BASE_DIR / "static",
 ]
 
-# Configuración para producción (cuando DEBUG es False)
+# Configuración de archivos estáticos para producción
+DEBUG = os.getenv('DEBUG', 'False') == 'True'  # Lee DEBUG desde variables de entorno
+
 if not DEBUG:
-    # Carpeta donde Django recopilará todos los archivos estáticos
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Ruta absoluta válida
-    # Almacenamiento de archivos estáticos con WhiteNoise
+    STATIC_ROOT = BASE_DIR / "staticfiles"  # Ruta donde se recopilarán los archivos estáticos
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
-    STATIC_ROOT = None  # Ninguna carpeta de recopilación estática en modo DEBUG
-    
+    STATIC_ROOT = None  # En desarrollo no se usa `collectstatic`
     
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
