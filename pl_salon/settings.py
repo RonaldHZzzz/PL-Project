@@ -143,18 +143,24 @@ USE_I18N = True
 
 USE_TZ = True
 
+# URL base para los archivos estáticos
 STATIC_URL = '/static/'
+
+# Directorios adicionales para buscar archivos estáticos
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Directorio donde se guardan los archivos estáticos.
+    BASE_DIR / "static",  # Directorio estático en desarrollo
 ]
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+# Configuración para producción (cuando DEBUG es False)
 if not DEBUG:
-    STATIC_ROOT=    os.path.join(BASE_DIR,'staticfiles')
-    
+    # Carpeta donde Django recopilará todos los archivos estáticos
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Ruta absoluta válida
+    # Almacenamiento de archivos estáticos con WhiteNoise
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATIC_ROOT = None  # Ninguna carpeta de recopilación estática en modo DEBUG
+    
+    
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
