@@ -16,6 +16,9 @@ from xhtml2pdf import pisa
 import locale
 
 
+
+ 
+
 def register(request):
     if request.user.is_authenticated:  # Verifica si el usuario ya está autenticado
         return redirect('home')  # Redirige a 'home'

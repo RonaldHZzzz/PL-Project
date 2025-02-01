@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from users import views
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',views.signin, name='login'),
@@ -30,6 +31,5 @@ urlpatterns = [
     path('eliminar_descuento/<int:descuento_id>/',views.eliminar_descuento, name='eliminar_descuento'),
     path('reportes/',views.Report,name='reportes'),
     path('reportes/semanal/', views.generar_reporte_semanal, name='reporte_semanal'),
-    
-    
+
 ]  
