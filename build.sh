@@ -15,3 +15,5 @@ python manage.py migrate
 # Ejecuta el script de tarea en segundo plano
 nohup python pl_salon/task.py &
 
+
+
