@@ -89,7 +89,7 @@ TEMPLATES = [
         },
     },
 ]
-WSGI_APPLICATION = 'pl_salon.wsgi.application.app'
+WSGI_APPLICATION = 'pl_salon.wsgi.application'
 
 
 
