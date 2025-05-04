@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from users import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
@@ -33,3 +35,6 @@ urlpatterns = [
     path('reportes/semanal/', views.generar_reporte_semanal, name='reporte_semanal'),
 
 ]  
+
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
