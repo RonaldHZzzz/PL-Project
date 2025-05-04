@@ -35,6 +35,3 @@ urlpatterns = [
     path('reportes/semanal/', views.generar_reporte_semanal, name='reporte_semanal'),
 
 ]  
-
-
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
