@@ -174,4 +174,4 @@ SESSION_COOKIE_AGE = 600  # Tiempo en segundos antes de que expire la sesión
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Cierra la sesión al cerrar el navegador
 SESSION_SAVE_EVERY_REQUEST = True  # Renueva la sesión con cada solicitud
 
-
+CSRF_TRUSTED_ORIGINS = ['http://*','https://web-production-995c.up.railway.app']
