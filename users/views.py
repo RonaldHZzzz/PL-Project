@@ -114,7 +114,6 @@ def signin(request):
             login(request, user)
             return redirect('home')
         
-@login_required
 def jobs(request):
     # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
@@ -122,6 +121,10 @@ def jobs(request):
     hoy = datetime.today().date()  # Usar datetime para obtener la fecha actual
     semana_actual = hoy.isocalendar()[1]
     anio_actual = hoy.year
+
+    # Calcular el primer día de la semana (lunes)
+    lunes = hoy - timedelta(days=hoy.weekday())
+    domingo = lunes + timedelta(days=6)  # Último día de la semana (domingo)
 
     # Convertir las fechas de cadena a objetos de fecha si están presentes
     if from_date and to_date:
@@ -141,21 +144,24 @@ def jobs(request):
             fecha_registro_descuento__lte=to_date
         )
     else:
-        # Si no se proporciona ningún filtro, obtener todos los trabajos de la semana actual
+        # Si no se proporciona ningún filtro, obtener los trabajos y descuentos de la semana actual (lunes a domingo)
         trabajos = Trabajo.objects.filter(
             fecha_registro__year=anio_actual,
-            fecha_registro__week=semana_actual
+            fecha_registro__gte=lunes,
+            fecha_registro__lte=domingo
         )
-        # Obtener todos los descuentos de la semana actual
         descuentos = Descuentos.objects.filter(
             fecha_registro_descuento__year=anio_actual,
-            fecha_registro_descuento__week=semana_actual
+            fecha_registro_descuento__gte=lunes,
+            fecha_registro_descuento__lte=domingo
         )
 
     # Contexto para la plantilla
     context = {
         'trabajos': trabajos,
-        'descuentos': descuentos
+        'descuentos': descuentos,
+        'lunes': lunes,
+        'domingo': domingo
     }
     return render(request, 'jobs.html', context)
 
