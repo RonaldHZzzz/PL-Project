@@ -147,16 +147,16 @@ def jobs(request):
         start_datetime = lunes_aware
         end_datetime = domingo_aware
 
-    # Filtrar trabajos y descuentos
+    # Filtrar y ordenar trabajos y descuentos (orden descendente)
     trabajos = Trabajo.objects.filter(
         fecha_registro__gte=start_datetime,
         fecha_registro__lte=end_datetime
-    ).order_by('-fecha_registro')
+    ).order_by('fecha_registro')  # <--- Orden descendente
 
     descuentos = Descuentos.objects.filter(
         fecha_registro_descuento__gte=start_datetime,
         fecha_registro_descuento__lte=end_datetime
-    )
+    ).order_by('fecha_registro_descuento')  # <--- Orden descendente
 
     # Preparar fechas para mostrar en la plantilla
     lunes_display = lunes_aware.date()
