@@ -119,39 +119,45 @@ def jobs(request):
     # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
     to_date = request.GET.get('to-date')
-    hoy = date.today()
+    hoy = datetime.today().date()  # Usar datetime para obtener la fecha actual
     semana_actual = hoy.isocalendar()[1]
     anio_actual = hoy.year
 
-    # Filtrar los trabajos si las fechas están presentes
+    # Convertir las fechas de cadena a objetos de fecha si están presentes
     if from_date and to_date:
+        try:
+            from_date = datetime.strptime(from_date, '%Y-%m-%d').date()  # Convertir de string a date
+            to_date = datetime.strptime(to_date, '%Y-%m-%d').date()  # Convertir de string a date
+        except ValueError:
+            from_date = to_date = None  # Si las fechas no son válidas, no se filtra
+
+        # Filtrar los trabajos y descuentos si las fechas están presentes
         trabajos = Trabajo.objects.filter(
             fecha_registro__gte=from_date,  # fecha mayor o igual a 'Desde'
             fecha_registro__lte=to_date     # fecha menor o igual a 'Hasta'
         )
-        descuentos= Descuentos.objects.filter(
-           fecha_registro_descuento__gte=from_date,
-           fecha_registro_descuento__lte=to_date
-            
+        descuentos = Descuentos.objects.filter(
+            fecha_registro_descuento__gte=from_date,
+            fecha_registro_descuento__lte=to_date
         )
     else:
-        # Si no se proporciona ningún filtro, obtener todos los trabajos
+        # Si no se proporciona ningún filtro, obtener todos los trabajos de la semana actual
         trabajos = Trabajo.objects.filter(
-        fecha_registro__year=anio_actual,
-        fecha_registro__week=semana_actual
+            fecha_registro__year=anio_actual,
+            fecha_registro__week=semana_actual
         )
-          # Obtener todos los descuentos del usuario actual
+        # Obtener todos los descuentos de la semana actual
         descuentos = Descuentos.objects.filter(
-        fecha_registro_descuento__year=anio_actual,
-        fecha_registro_descuento__week=semana_actual
+            fecha_registro_descuento__year=anio_actual,
+            fecha_registro_descuento__week=semana_actual
         )
 
-    
-    context={
-            'trabajos':trabajos,
-            'descuentos':descuentos
-        }
-    return render(request, 'jobs.html',context)
+    # Contexto para la plantilla
+    context = {
+        'trabajos': trabajos,
+        'descuentos': descuentos
+    }
+    return render(request, 'jobs.html', context)
 
 @login_required
 def total(request):
