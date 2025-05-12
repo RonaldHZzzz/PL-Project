@@ -113,7 +113,8 @@ def signin(request):
         else:
             login(request, user)
             return redirect('home')
-        
+    
+@login_required       
 def jobs(request):
     # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
