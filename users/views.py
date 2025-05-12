@@ -119,51 +119,56 @@ def jobs(request):
     # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
     to_date = request.GET.get('to-date')
-    hoy = datetime.today().date()  # Usar datetime para obtener la fecha actual
-    semana_actual = hoy.isocalendar()[1]
-    anio_actual = hoy.year
 
-    # Calcular el primer día de la semana (lunes)
-    lunes = hoy - timedelta(days=hoy.weekday())
-    domingo = lunes + timedelta(days=6)  # Último día de la semana (domingo)
+    # Obtener la fecha y hora actual en la zona horaria configurada
+    now_aware = timezone.localtime(timezone.now())
+    hoy = now_aware.date()
 
-    # Convertir las fechas de cadena a objetos de fecha si están presentes
+    # Calcular el lunes y domingo de la semana actual
+    lunes_aware = now_aware - timedelta(days=now_aware.weekday())
+    lunes_aware = lunes_aware.replace(hour=0, minute=0, second=0, microsecond=0)
+    domingo_aware = lunes_aware + timedelta(days=6, hours=23, minutes=59, seconds=59, microseconds=999999)
+
+    # Si hay fechas en el formulario, usarlas; de lo contrario, semana actual
     if from_date and to_date:
         try:
-            from_date = datetime.strptime(from_date, '%Y-%m-%d').date()  # Convertir de string a date
-            to_date = datetime.strptime(to_date, '%Y-%m-%d').date()  # Convertir de string a date
+            # Convertir fechas del formulario a objetos date
+            from_date = datetime.strptime(from_date, '%Y-%m-%d').date()
+            to_date = datetime.strptime(to_date, '%Y-%m-%d').date()
+
+            # Convertir a datetime consciente de zona horaria
+            start_datetime = timezone.make_aware(datetime.combine(from_date, datetime.min.time()))
+            end_datetime = timezone.make_aware(datetime.combine(to_date, datetime.max.time()))
         except ValueError:
-            from_date = to_date = None  # Si las fechas no son válidas, no se filtra
-
-        # Filtrar los trabajos y descuentos si las fechas están presentes
-        trabajos = Trabajo.objects.filter(
-            fecha_registro__gte=from_date,  # fecha mayor o igual a 'Desde'
-            fecha_registro__lte=to_date     # fecha menor o igual a 'Hasta'
-        )
-        descuentos = Descuentos.objects.filter(
-            fecha_registro_descuento__gte=from_date,
-            fecha_registro_descuento__lte=to_date
-        )
+            # Si hay error, usar semana actual
+            start_datetime = lunes_aware
+            end_datetime = domingo_aware
     else:
-        # Si no se proporciona ningún filtro, obtener los trabajos y descuentos de la semana actual (lunes a domingo)
-        trabajos = Trabajo.objects.filter(
-            fecha_registro__year=anio_actual,
-            fecha_registro__gte=lunes,
-            fecha_registro__lte=domingo
-        )
-        descuentos = Descuentos.objects.filter(
-            fecha_registro_descuento__year=anio_actual,
-            fecha_registro_descuento__gte=lunes,
-            fecha_registro_descuento__lte=domingo
-        )
+        start_datetime = lunes_aware
+        end_datetime = domingo_aware
 
-    # Contexto para la plantilla
+    # Filtrar trabajos y descuentos
+    trabajos = Trabajo.objects.filter(
+        fecha_registro__gte=start_datetime,
+        fecha_registro__lte=end_datetime
+    ).order_by('-fecha_registro')
+
+    descuentos = Descuentos.objects.filter(
+        fecha_registro_descuento__gte=start_datetime,
+        fecha_registro_descuento__lte=end_datetime
+    )
+
+    # Preparar fechas para mostrar en la plantilla
+    lunes_display = lunes_aware.date()
+    domingo_display = domingo_aware.date()
+
     context = {
         'trabajos': trabajos,
         'descuentos': descuentos,
-        'lunes': lunes,
-        'domingo': domingo
+        'lunes': lunes_display,
+        'domingo': domingo_display,
     }
+
     return render(request, 'jobs.html', context)
 
 @login_required
