@@ -254,49 +254,56 @@ def Report(request):
 
 @login_required
 def generar_reporte_semanal(request):
-    
-    # Configura el idioma en español
-    locale.setlocale(locale.LC_TIME, 'es_ES')  # O inténtalo con 'C'
+    # Configura el idioma en español (puede variar según el sistema operativo)
+    try:
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    except locale.Error:
+        locale.setlocale(locale.LC_TIME, 'es_ES')  # Fallback si 'UTF-8' no está disponible
+
     # Obtener fechas de inicio y fin de la semana actual
-    hoy = date.today()  # Usa 'date' directamente en lugar de 'datetime.date'
-    inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
-    fin_semana = inicio_semana + timedelta(days=6)  # Domingo de la semana actual
-    
+    hoy = date.today()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes
+    fin_semana = inicio_semana + timedelta(days=6)       # Domingo
+
     # Filtrar trabajos y descuentos por la semana actual
-    trabajos = Trabajo.objects.filter(fecha_registro__range=[inicio_semana, fin_semana])
-    descuentos = Descuentos.objects.filter(fecha_registro_descuento__range=[inicio_semana, fin_semana])
+    trabajos = Trabajo.objects.filter(
+        fecha_registro__range=[inicio_semana, fin_semana],
+        usuario=request.user
+    )
+    descuentos = Descuentos.objects.filter(
+        fecha_registro_descuento__range=[inicio_semana, fin_semana],
+        usuario=request.user
+    )
 
     # Calcular totales
     total_trabajos = sum(trabajo.monto for trabajo in trabajos)
     total_descuentos = sum(descuento.descuento for descuento in descuentos)
-    # Formatea las fechas en español
-    inicio_semana_formateada = inicio_semana.strftime("%d de %B de %Y")
-    fin_semana_formateada = fin_semana.strftime("%d de %B de %Y")
+    total_final = max(0, total_trabajos - total_descuentos)
 
-    # Preparar contexto para la plantilla
+    # Preparar contexto
     context = {
+        'usuario': request.user,
+        'inicio_semana': inicio_semana.strftime('%d de %B de %Y'),
+        'fin_semana': fin_semana.strftime('%d de %B de %Y'),
         'trabajos': trabajos,
         'descuentos': descuentos,
-        'inicio_semana': inicio_semana_formateada,
-        'fin_semana': fin_semana_formateada,
         'total_trabajos': total_trabajos,
         'total_descuentos': total_descuentos,
-        'neto': total_trabajos - total_descuentos,
+        'total_final': total_final,
+        'fecha_actual': hoy.strftime('%d de %B de %Y'),
     }
 
-    # Renderizar la plantilla HTML
-    template = get_template('reporte_semanal.html')  # Crea esta plantilla
+    # Generar PDF
+    template_path = 'reporte_semanal.html'
+    template = get_template(template_path)
     html = template.render(context)
-
-    # Crear el PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="reporte_semanal.pdf"'
+    response['Content-Disposition'] = f'filename="reporte_semanal_{hoy}.pdf"'
+
     pisa_status = pisa.CreatePDF(html, dest=response)
 
-    # Verificar errores en la generación del PDF
     if pisa_status.err:
-        return HttpResponse('Error al generar el PDF', status=500)
-
+        return HttpResponse('Ocurrió un error al generar el PDF.')
     return response
 
 @login_required
