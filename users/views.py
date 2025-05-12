@@ -119,7 +119,7 @@ def jobs(request):
     # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
     to_date = request.GET.get('to-date')
-    hoy = date.today()
+    hoy = timezone.localtime().date()
     semana_actual = hoy.isocalendar()[1]
     anio_actual = hoy.year
 
