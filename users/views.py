@@ -14,6 +14,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 import locale
+from django.db.models.functions import ExtractIsoWeekDay
 
 
 
@@ -159,12 +160,12 @@ def total(request):
     anio_actual = hoy.year
     mes_actual = hoy.month
 
-    # Calcular ingresos semanales, agrupados por día de la semana
+    # Calcular ingresos semanales, agrupados por día de la semana (lunes=1, domingo=7)
     trabajos_semanales = Trabajo.objects.filter(
         fecha_registro__year=anio_actual,
         fecha_registro__week=semana_actual
     ).annotate(
-        dia_semana=ExtractWeekDay('fecha_registro')
+        dia_semana=ExtractIsoWeekDay('fecha_registro')
     ).values('dia_semana').annotate(
         total=Sum('monto')
     )
@@ -180,12 +181,12 @@ def total(request):
     # Calcular el total semanal de ingresos
     total_semanal = sum(ingresos_por_dia_lista)
 
-    # Calcular descuentos semanales, agrupados por día de la semana
+    # Calcular descuentos semanales, agrupados por día de la semana (lunes=1, domingo=7)
     descuentos_semanales = Descuentos.objects.filter(
         fecha_registro_descuento__year=anio_actual,
         fecha_registro_descuento__week=semana_actual
     ).annotate(
-        dia_semana=ExtractWeekDay('fecha_registro_descuento')
+        dia_semana=ExtractIsoWeekDay('fecha_registro_descuento')
     ).values('dia_semana').annotate(
         total=Sum('descuento')
     )
@@ -207,10 +208,10 @@ def total(request):
         fecha_registro__month=mes_actual
     ).aggregate(Sum('monto'))['monto__sum'] or 0
     
-    #descuntos de la semana actual
-    descuento_semana_actual= Descuentos.objects.filter(
-    fecha_registro_descuento__year=anio_actual,
-    fecha_registro_descuento__week=semana_actual
+    # Descuentos de la semana actual
+    descuento_semana_actual = Descuentos.objects.filter(
+        fecha_registro_descuento__year=anio_actual,
+        fecha_registro_descuento__week=semana_actual
     )
 
     # Obtener descuentos totales y calcular el total descontado
@@ -226,25 +227,22 @@ def total(request):
             descuento = descuento_form.save(commit=False)
             descuento.usuario = request.user  # Asociar el descuento con el usuario actual
             descuento.save()
-            # Redirigir para evitar duplicación del POST
             return redirect('total')
     else:
         descuento_form = DescuentoForm()
 
-    # Contexto para pasar a la plantilla
+    # Contexto para la plantilla
     context = {
-        'total_semanal': total_semanal,  # Total de ingresos acumulados en la semana actual.
-        'total_mensual': total_mensual,  # Total de ingresos acumulados en el mes actual.
-        'ingresos_por_dia_lista': ingresos_por_dia_lista,  # Lista de ingresos diarios en la semana actual (lunes a domingo). 
-        
-        'total_descuento_semanal': total_descuento_semanal,  # Total de descuentos aplicados durante la semana actual.
-        'total_descontado': total_descontado,  # Total global de descuentos aplicados (suma de todos los descuentos registrados).
-        'descuentos': Descuentos.objects.all(),  # Lista completa de descuentos registrados en la base de datos.
-        'descuentos_por_dia_lista': descuentos_por_dia_lista,  # Lista de descuentos diarios en la semana actual (lunes a domingo).
-        'descuento_semana_actual': descuento_semana_actual,  # Lista de descuentos aplicados únicamente en la semana actual.
-        
-        'descuento_form': descuento_form,  # Formulario para agregar nuevos descuentos, vinculado al usuario actual.
-        'total_final': total_final,  # Total final de ingresos de la semana actual después de aplicar descuentos (no negativo).
+        'total_semanal': total_semanal,
+        'total_mensual': total_mensual,
+        'ingresos_por_dia_lista': ingresos_por_dia_lista,
+        'total_descuento_semanal': total_descuento_semanal,
+        'total_descontado': total_descontado,
+        'descuentos': Descuentos.objects.all(),
+        'descuentos_por_dia_lista': descuentos_por_dia_lista,
+        'descuento_semana_actual': descuento_semana_actual,
+        'descuento_form': descuento_form,
+        'total_final': total_final,
     }
 
     return render(request, 'total.html', context)
