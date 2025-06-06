@@ -31,12 +31,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY',default='your secret key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['web-production-995c.up.railway.app','localhost','127.0.0.1','plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net']
+ALLOWED_HOSTS = ['localhost','127.0.0.1','plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net']
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
 
 # settings.py
 LOGIN_URL = '/'  # Ruta a tu vista de inicio de sesión
@@ -174,4 +172,14 @@ SESSION_COOKIE_AGE = 600  # Tiempo en segundos antes de que expire la sesión
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Cierra la sesión al cerrar el navegador
 SESSION_SAVE_EVERY_REQUEST = True  # Renueva la sesión con cada solicitud
 
-CSRF_TRUSTED_ORIGINS = ['http://*','https://plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net/']
+CSRF_TRUSTED_ORIGINS = [
+    'https://plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net'
+]
+
+# Seguridad CSRF y sesiones
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
