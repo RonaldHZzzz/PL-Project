@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY',default='your secret key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['web-production-995c.up.railway.app','localhost','127.0.0.1']
+ALLOWED_HOSTS = ['web-production-995c.up.railway.app','localhost','127.0.0.1','plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net']
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 
