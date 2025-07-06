@@ -2,42 +2,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
   {% tailwind_css %}
+
+  <style>
+    /* Fondo bokeh rosa transparente */
+    .bokeh-bg {
+      background: radial-gradient(
+        circle at 50% 50%,
+        rgba(255, 192, 203, 0.3) 0%,
+        rgba(255, 192, 203, 0.1) 40%,
+        transparent 80%
+      );
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Animación fadeIn para el mensaje */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .fade-in {
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+
+    /* Animación flotante suave para la imagen */
+    @keyframes floatUpDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    .floating-image {
+      width: 120px;
+      height: auto;
+      animation: floatUpDown 3s ease-in-out infinite;
+      user-select: none;
+      pointer-events: none;
+    }
+
+  </style>
 </head>
 
 <body class="flex items-center justify-center h-screen bg-pink-100 relative">
-  {% comment %} {% endcomment %}
-  
+
+  <!-- Fondo decorativo radial -->
   <div class="absolute top-0 z-[-2] h-screen w-screen rotate-180 transform bg-white bg-[radial-gradient(60%_120%_at_50%_50%,hsla(0,0%,100%,0)_0,rgba(252,205,238,.5)_100%)]"></div>
-  <div class="w-full max-w-md rounded-lg p-8" style="box-shadow: 0px 0px 40px rgba(189, 51, 177, 0.2);">
-    <!-- Imagen arriba del formulario -->
-  <div class="flex justify-center mb-6">
-    <img src="{% static '\images\logo.png' %}" alt="Login Logo"  width="100" height="100">
-  </div>
-    
+
+  <!-- Contenedor del formulario -->
+  <div class="w-full max-w-md rounded-lg p-8 bg-white relative z-10" style="box-shadow: 0 0 40px rgba(189, 51, 177, 0.2);">
+    <div class="flex justify-center mb-6">
+      <img src="{% static 'images/logo.png' %}" alt="Login Logo" width="100" height="100" />
+    </div>
 
     <h2 class="text-2xl font-bold text-center text-black mb-6">Iniciar Sesión</h2>
+
     {% if errorlogin %}
     <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
       <p>{{ errorlogin }}</p>
     </div>
     {% endif %}
 
-    <form action="/" method="POST">
+    <form action="/" method="POST" novalidate>
       {% csrf_token %}
       <div class="mb-4">
         <label for="username" class="block text-black font-medium mb-2">Nombre de Usuario</label>
         <input type="text" id="username" name="username" required
-          class="w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring focus:ring-blue-300">
+          class="w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring focus:ring-blue-300" />
       </div>
       <div class="mb-4">
         <label for="password" class="block text-black font-medium mb-2">Contraseña</label>
         <input type="password" id="password" name="password" required
-          class="w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring focus:ring-blue-300">
+          class="w-full px-4 py-2 border rounded-lg text-gray-800 focus:outline-none focus:ring focus:ring-blue-300" />
       </div>
       <button type="submit"
         class="w-full bg-rose-300 hover:bg-rose-500 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
@@ -48,4 +88,42 @@
       </p>
     </form>
   </div>
+
+  <!-- Overlay de carga con efecto bokeh rosa -->
+  <div id="loading-overlay" class="fixed inset-0 z-50 hidden bokeh-bg flex flex-col items-center justify-center gap-6 transition-opacity duration-300 px-4 text-center">
+    <!-- Imagen con animación flotante -->
+    <img src="{% static 'images\esmalte-de-unas.png' %}" alt="Cargando..." class="floating-image" />
+
+    <!-- Spinner SVG simple -->
+    <svg class="animate-spin h-10 w-10 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    </svg>
+
+    <h3 class="text-xl font-semibold text-rose-600">✨ Preparando tu espacio de belleza…</h3>
+    <p id="patience-msg" class="text-gray-700 text-sm opacity-0 mt-2">💅 Sé paciente, la belleza toma su tiempo...</p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.querySelector('form');
+      const submitButton = form.querySelector('button[type="submit"]');
+      const overlay = document.getElementById('loading-overlay');
+      const patienceMsg = document.getElementById('patience-msg');
+
+      form.addEventListener('submit', function (e) {
+        if (!form.checkValidity()) return;
+
+        submitButton.disabled = true;
+        submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+        overlay.classList.remove('hidden');
+
+        setTimeout(() => {
+          patienceMsg.classList.add('fade-in');
+        }, 2000);
+      });
+    });
+  </script>
 </body>
+</html>
