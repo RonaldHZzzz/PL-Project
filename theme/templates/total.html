@@ -6,7 +6,12 @@
 <h1 class="text-2xl font-bold tracking-tight text-gray-900">Totales</h1>
 {% endblock %}
 
+
 {% block content %}
+<div id="toastDescuento" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity duration-500 z-50">
+    Descuento registrado exitosamente ✔️
+</div>
+
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
     <!-- Totales -->
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-6">
@@ -36,7 +41,7 @@
         <!-- Formulario -->
         <div class="bg-white p-4 rounded shadow-md">
             <h3 class="text-lg font-semibold text-center">Registrar descuento</h3>
-            <form method="POST" action="{% url 'total' %}" class="space-y-4">
+            <form id="descuentoForm" method="POST" action="{% url 'total' %}" class="space-y-4">
                 {% csrf_token %}
                 <div>
                     <label for="descripcion" class="block text-sm font-medium text-gray-700">Ingrese qué se descontó</label>
@@ -65,9 +70,7 @@
                     </div>
                 </div>
                 <button
-                    type="submit"
-                    class="w-full bg-pink-500 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                >
+                    id="submitDescuentoBtn"   type="submit" class="w-full bg-pink-500 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
                     Registrar Descuento
                 </button>
             </form>
@@ -101,12 +104,96 @@
         </div>
     </div>
 
-    <!-- Gráfica -->
-    <div class="col-span-4 bg-white p-4 rounded shadow-md mt-6">
-        <h3 class="text-lg font-semibold">Total Semanal</h3>
-        <canvas id="totalSemanalChart"></canvas>
-    </div>
+   
+    
 </div>
+
+<script>
+    const toastDescuento = document.getElementById('toastDescuento');
+    const descuentoForm = document.getElementById('descuentoForm');
+    const submitDescuentoBtn = document.getElementById('submitDescuentoBtn');
+
+    function showToastDescuento(message) {
+        toastDescuento.textContent = message;
+        toastDescuento.classList.remove('opacity-0', 'pointer-events-none');
+        toastDescuento.classList.add('opacity-100');
+        setTimeout(() => {
+            toastDescuento.classList.add('opacity-0', 'pointer-events-none');
+            toastDescuento.classList.remove('opacity-100');
+        }, 3000);
+    }
+
+    function toggleButtonLoadingDescuento(isLoading) {
+        if (isLoading) {
+            submitDescuentoBtn.disabled = true;
+            submitDescuentoBtn.classList.add('cursor-not-allowed', 'opacity-70');
+            submitDescuentoBtn.textContent = 'Registrando...';
+        } else {
+            submitDescuentoBtn.disabled = false;
+            submitDescuentoBtn.classList.remove('cursor-not-allowed', 'opacity-70');
+            submitDescuentoBtn.textContent = 'Registrar Descuento';
+        }
+    }
+
+    descuentoForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        toggleButtonLoadingDescuento(true);
+
+        const formData = new FormData(descuentoForm);
+
+        try {
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+                body: formData,
+            });
+
+            toggleButtonLoadingDescuento(false);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert('Error: ' + JSON.stringify(errorData.errors));
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                const descuento = data.descuento;
+
+                // Crear fila nueva en la tabla de descuentos
+                const tbody = document.querySelector('table tbody');
+                const emptyRow = tbody.querySelector('tr td[colspan="3"]');
+                if (emptyRow) {
+                    emptyRow.parentNode.remove();
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="border-b px-4 py-2">${descuento.descripcion}</td>
+                    <td class="border-b px-4 py-2">${descuento.fecha_registro_descuento}</td>
+                    <td class="border-b px-4 py-2">$${parseFloat(descuento.descuento).toFixed(2)}</td>
+                `;
+
+                tbody.appendChild(tr);
+
+                descuentoForm.reset();
+
+                showToastDescuento('Descuento registrado exitosamente ✔️');
+            } else {
+                alert('Error desconocido al registrar descuento.');
+            }
+        } catch (error) {
+            toggleButtonLoadingDescuento(false);
+            alert('Error en la petición AJAX: ' + error.message);
+        }
+    });
+</script>
+
 
 
 {% endblock %}
