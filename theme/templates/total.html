@@ -25,15 +25,15 @@
         </div>
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
             <h2 class="text-sm font-bold lg:text-xl">Total Descontado</h2>
-            <p class="text-lg lg:text-2xl text-red-500">
+            <p class="text-lg lg:text-2xl text-red-500" id="totalDescuentoSemanal">
                 ${{ total_descuento_semanal }} 
                 
             </p>
         </div>
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
-            <h2 class="text-sm font-bold lg:text-xl">Total Final</h2>
-            <p class="text-lg lg:text-2xl">${{ total_final }}</p>
-        </div>
+    <h2 class="text-sm font-bold lg:text-xl">Total Final</h2>
+    <p class="text-lg lg:text-2xl" id="totalFinal">${{ total_final }}</p>
+</div>
     </div>
 
     <!-- Formulario y lista en diseño responsivo -->
@@ -163,30 +163,39 @@
             const data = await response.json();
 
             if (data.success) {
-                const descuento = data.descuento;
+            const descuento = data.descuento;
 
-                // Crear fila nueva en la tabla de descuentos
-                const tbody = document.querySelector('table tbody');
-                const emptyRow = tbody.querySelector('tr td[colspan="3"]');
-                if (emptyRow) {
-                    emptyRow.parentNode.remove();
-                }
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="border-b px-4 py-2">${descuento.descripcion}</td>
-                    <td class="border-b px-4 py-2">${descuento.fecha_registro_descuento}</td>
-                    <td class="border-b px-4 py-2">$${parseFloat(descuento.descuento).toFixed(2)}</td>
-                `;
-
-                tbody.appendChild(tr);
-
-                descuentoForm.reset();
-
-                showToastDescuento('Descuento registrado exitosamente ✔️');
-            } else {
-                alert('Error desconocido al registrar descuento.');
+            // Crear fila nueva en la tabla de descuentos
+            const tbody = document.querySelector('table tbody');
+            const emptyRow = tbody.querySelector('tr td[colspan="3"]');
+            if (emptyRow) {
+                emptyRow.parentNode.remove();
             }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="border-b px-4 py-2">${descuento.descripcion}</td>
+                <td class="border-b px-4 py-2">${descuento.fecha_registro_descuento}</td>
+                <td class="border-b px-4 py-2">$${parseFloat(descuento.descuento).toFixed(2)}</td>
+            `;
+
+            tbody.appendChild(tr);
+
+            // Actualizar totales dinámicamente
+            if (data.total_descuento_semanal !== undefined) {
+                document.getElementById('totalDescuentoSemanal').textContent = `$${parseFloat(data.total_descuento_semanal).toFixed(2)}`;
+            }
+            if (data.total_final !== undefined) {
+                document.getElementById('totalFinal').textContent = `$${parseFloat(data.total_final).toFixed(2)}`;
+            }
+
+            descuentoForm.reset();
+
+            showToastDescuento('Descuento registrado exitosamente ✔️');
+        } else {
+            alert('Error desconocido al registrar descuento.');
+        }
+
         } catch (error) {
             toggleButtonLoadingDescuento(false);
             alert('Error en la petición AJAX: ' + error.message);
