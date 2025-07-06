@@ -9,17 +9,20 @@ from django.contrib.auth.decorators import login_required
 from .models import Trabajo, Descuentos
 from .forms import TrabajoForm, DescuentoForm
 from django.db.models import Sum
-from django.db.models.functions import ExtractWeekDay
-from django.http import HttpResponse
-from django.template.loader import get_template
-from xhtml2pdf import pisa
-import locale
 from django.db.models.functions import ExtractIsoWeekDay, TruncWeek
 from django.utils import timezone
+from django.contrib.auth.forms import AuthenticationForm
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.db.models.functions import ExtractWeek
+import difflib
+from collections import defaultdict, Counter
+from django.db.models import Count
 
 
 
- 
+
+
 
 def register(request):
     if request.user.is_authenticated:  # Verifica si el usuario ya está autenticado
@@ -69,23 +72,25 @@ def register(request):
             
 @login_required
 def home(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         form = TrabajoForm(request.POST)
         if form.is_valid():
             trabajo = form.save(commit=False)
-            trabajo.usuario = request.user  # Asociar el trabajo con el usuario actual
+            trabajo.usuario = request.user
             trabajo.save()
-            messages.success(request, 'Trabajo registrado exitosamente.')
-            return redirect('home')  # Redirigir a la misma página después de guardar
+            data = {
+                'id': trabajo.id,
+                'trabajo': trabajo.trabajo,
+                'monto': float(trabajo.monto),
+                'fecha_registro': trabajo.fecha_registro.strftime('%Y-%m-%d %H:%M'),
+                'usuario': request.user.username,
+            }
+            return JsonResponse({'success': True, 'trabajo': data})
         else:
-            messages.error(request, 'Hubo un error al registrar el trabajo.')
-    else:
-        form = TrabajoForm()
-    
-    # Obtener los trabajos del usuario actual
-        trabajos = Trabajo.objects.filter(usuario=request.user).order_by('-fecha_registro')#esto solo en caso de filtrar
-    
-    return render(request, 'home.html', {'form': form, 'trabajos': trabajos})
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+    trabajos = Trabajo.objects.filter(usuario=request.user).order_by('-fecha_registro')[:20]
+    return render(request, 'home.html', {'trabajos': trabajos})
 
 @login_required
 def signout(request):
@@ -95,24 +100,24 @@ def signout(request):
 
 
 def signin(request):
-    if request.user.is_authenticated:  # Verifica si el usuario ya está autenticado
-        return redirect('home')  # Redirige a 'home'
-    
-    if request.method == 'GET':
-        return render(request, 'login.html', {
-            'form': AuthenticationForm
-        })
-    else: 
-        user = authenticate(
-            request, username=request.POST['username'], password=request.POST['password'])
-        if user is None:
-            return render(request, 'login.html', {
-                'form': AuthenticationForm,
-                'errorlogin': 'Usuario y Contraseña incorrectos.'
-            })
-        else:
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
             login(request, user)
             return redirect('home')
+        else:
+            return render(request, 'login.html', {
+                'form': form,
+                'errorlogin': 'Usuario y Contraseña incorrectos.'
+            })
+    else:
+        return render(request, 'login.html', {
+            'form': AuthenticationForm()
+        })
     
 @login_required       
 def jobs(request):
@@ -151,6 +156,7 @@ def jobs(request):
             'trabajos':trabajos,
             'descuentos':descuentos
         }
+    
     return render(request, 'jobs.html',context)
 
 @login_required
@@ -228,9 +234,23 @@ def total(request):
         descuento_form = DescuentoForm(request.POST)
         if descuento_form.is_valid():
             descuento = descuento_form.save(commit=False)
-            descuento.usuario = request.user  # Asociar el descuento con el usuario actual
+            descuento.usuario = request.user
             descuento.save()
-            return redirect('total')
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                 return JsonResponse({
+                    'success': True,
+                    'descuento': {
+                        'id': descuento.id,
+                        'descripcion': descuento.descripcion,
+                        'fecha_registro_descuento': descuento.fecha_registro_descuento.strftime('%Y-%m-%d'),
+                        'descuento': float(descuento.descuento),
+                    }
+                })
+            else:
+                return redirect('total')
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'errors': descuento_form.errors}, status=400)
     else:
         descuento_form = DescuentoForm()
 
@@ -247,59 +267,59 @@ def total(request):
         'descuento_form': descuento_form,
         'total_final': total_final,
     }
+    
+    
 
     return render(request, 'total.html', context)
+
 @login_required
 def Report(request):
-   
-    return render(request,'reportes.html')
+    hoy = timezone.localtime().date()
+    anio_actual = hoy.year
+    semana_actual = hoy.isocalendar()[1]
 
-@login_required
-def generar_reporte_semanal(request):
-    
-    # Configura el idioma en español
-    locale.setlocale(locale.LC_TIME, 'es_ES')  # O inténtalo con 'C'
-    # Obtener fechas de inicio y fin de la semana actual
-    hoy = date.today()  # Usa 'date' directamente en lugar de 'datetime.date'
-    inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
-    fin_semana = inicio_semana + timedelta(days=6)  # Domingo de la semana actual
-    
-    # Filtrar trabajos y descuentos por la semana actual
-    trabajos = Trabajo.objects.filter(fecha_registro__range=[inicio_semana, fin_semana])
-    descuentos = Descuentos.objects.filter(fecha_registro_descuento__range=[inicio_semana, fin_semana])
+    # Obtener totales de trabajos agrupados por semana (en año actual y semanas válidas)
+    ingresos_por_semana = Trabajo.objects.filter(
+        fecha_registro__year=anio_actual,
+        fecha_registro__week__lte=semana_actual
+    ).values('fecha_registro__week').annotate(total_ingresos=Sum('monto'))
 
-    # Calcular totales
-    total_trabajos = sum(trabajo.monto for trabajo in trabajos)
-    total_descuentos = sum(descuento.descuento for descuento in descuentos)
-    # Formatea las fechas en español
-    inicio_semana_formateada = inicio_semana.strftime("%d de %B de %Y")
-    fin_semana_formateada = fin_semana.strftime("%d de %B de %Y")
+    # Diccionario para acceso rápido: {semana: total_ingresos}
+    ingresos_dict = {item['fecha_registro__week']: item['total_ingresos'] for item in ingresos_por_semana}
 
-    # Preparar contexto para la plantilla
-    context = {
-        'trabajos': trabajos,
-        'descuentos': descuentos,
-        'inicio_semana': inicio_semana_formateada,
-        'fin_semana': fin_semana_formateada,
-        'total_trabajos': total_trabajos,
-        'total_descuentos': total_descuentos,
-        'neto': total_trabajos - total_descuentos,
-    }
+    # Obtener totales de descuentos agrupados por semana
+    descuentos_por_semana = Descuentos.objects.filter(
+        fecha_registro_descuento__year=anio_actual,
+        fecha_registro_descuento__week__lte=semana_actual
+    ).values('fecha_registro_descuento__week').annotate(total_descuentos=Sum('descuento'))
 
-    # Renderizar la plantilla HTML
-    template = get_template('reporte_semanal.html')  # Crea esta plantilla
-    html = template.render(context)
+    descuentos_dict = {item['fecha_registro_descuento__week']: item['total_descuentos'] for item in descuentos_por_semana}
 
-    # Crear el PDF
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="reporte_semanal.pdf"'
-    pisa_status = pisa.CreatePDF(html, dest=response)
+    semanas = []
+    for semana in reversed(range(1, semana_actual + 1)):
+        total_ingresos = ingresos_dict.get(semana, 0)
+        total_descuentos = descuentos_dict.get(semana, 0)
 
-    # Verificar errores en la generación del PDF
-    if pisa_status.err:
-        return HttpResponse('Error al generar el PDF', status=500)
+        fecha_inicio_semana = date.fromisocalendar(anio_actual, semana, 1)
+        fecha_fin_semana = date.fromisocalendar(anio_actual, semana, 7)
 
-    return response
+        semanas.append({
+            'anio': anio_actual,
+            'semana': semana,
+            'inicio': fecha_inicio_semana.strftime('%d %b'),
+            'fin': fecha_fin_semana.strftime('%d %b'),
+            'ingresos': total_ingresos,
+            'descuentos': total_descuentos,
+            'total': max(0, total_ingresos - total_descuentos),
+        })
+
+    # Paginador - 4 semanas por página
+    paginator = Paginator(semanas, 4)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'reportes.html', {'page_obj': page_obj})
+
 
 @login_required
 def eliminar_trabajo(request, trabajo_id):
@@ -325,3 +345,76 @@ def eliminar_descuento(request, descuento_id):
     # Mostramos una página de confirmación
     return render(request, 'confirmar_eliminacion.html', {'descuento': descuento})
     
+@login_required
+def semana_detalle(request, anio, semana):
+    # Obtener fecha de inicio (lunes) y fin (domingo) de la semana ISO
+    fecha_inicio = date.fromisocalendar(anio, semana, 1)
+    fecha_fin = fecha_inicio + timedelta(days=6)
+
+    # ✅ Eliminar filtro por usuario
+    trabajos = Trabajo.objects.filter(
+        fecha_registro__range=(fecha_inicio, fecha_fin)
+    ).order_by('fecha_registro')
+
+    descuentos = Descuentos.objects.filter(
+        fecha_registro_descuento__range=(fecha_inicio, fecha_fin)
+    ).order_by('fecha_registro_descuento')
+
+    total_ingresos = trabajos.aggregate(total=Sum('monto'))['total'] or 0
+    total_descuentos = descuentos.aggregate(total=Sum('descuento'))['total'] or 0
+    total_final = max(0, total_ingresos - total_descuentos)
+
+    context = {
+        'anio': anio,
+        'semana': semana,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'trabajos': trabajos,
+        'descuentos': descuentos,
+        'total_ingresos': total_ingresos,
+        'total_descuentos': total_descuentos,
+        'total_final': total_final,
+    }
+
+    return render(request, 'semana_detalle.html', context)
+
+
+@login_required
+def analizar(request):
+    trabajos = Trabajo.objects.all()
+
+    # Recolectar todos los nombres de trabajos
+    nombres_raw = [t.trabajo.strip().title() for t in trabajos]
+    nombres_unicos = list(set(nombres_raw))
+
+    # Agrupar trabajos similares
+    grupos_similares = []
+    usados = set()
+
+    for nombre in nombres_unicos:
+        if nombre in usados:
+            continue
+        grupo = [n for n in nombres_unicos if difflib.SequenceMatcher(None, nombre, n).ratio() > 0.75]
+        usados.update(grupo)
+        grupos_similares.append(grupo)
+
+    # Contar ocurrencias reales de cada grupo
+    conteo_grupos = []
+    for grupo in grupos_similares:
+        total = sum(nombres_raw.count(nombre) for nombre in grupo)
+        nombre_representativo = grupo[0]
+        conteo_grupos.append((nombre_representativo, total))
+
+    # Ordenar los trabajos
+    conteo_ordenado = sorted(conteo_grupos, key=lambda x: x[1], reverse=True)
+
+    # Top 5 más y menos realizados
+    top_mas = conteo_ordenado[:5]
+    top_menos = conteo_ordenado[-5:] if len(conteo_ordenado) >= 5 else conteo_ordenado[::-1]
+
+    context = {
+        'top_mas': top_mas,
+        'top_menos': top_menos,
+    }
+
+    return render(request, "analize.html", context)
