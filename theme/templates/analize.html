@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Análisis{% endblock %}
+
+{% block header %}
+<h1 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Datos</h1>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <!-- Filtros -->
+    <div class="mb-6 bg-white p-4 rounded shadow-md">
+        <h3 class="text-lg font-semibold mb-4">Filtrar por período</h3>
+        <form class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label for="desde" class="block text-sm font-medium text-gray-700">Desde</label>
+                <input type="date" id="desde" name="desde" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="hasta" class="block text-sm font-medium text-gray-700">Hasta</label>
+                <input type="date" id="hasta" name="hasta" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-pink-500 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
+                    Aplicar Filtros
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sección 1: Comparación de semanas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-4 rounded shadow-md">
+            <h3 class="text-lg font-semibold mb-4">Comparación de Semanas</h3>
+            <canvas id="comparacionSemanasChart"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow-md">
+            <h3 class="text-lg font-semibold mb-4">Evolución Mensual</h3>
+            <canvas id="evolucionMensualChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Sección 2: Trabajos más y menos realizados -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-4 rounded shadow-md">
+            <h3 class="text-lg font-semibold mb-4">Top 5 Trabajos Más Realizados</h3>
+            <canvas id="topTrabajosChart"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow-md">
+            <h3 class="text-lg font-semibold mb-4">Top 5 Trabajos Menos Realizados</h3>
+            <canvas id="menosTrabajosChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Sección 3: Distribución por día de la semana -->
+    <div class="bg-white p-4 rounded shadow-md mb-6">
+        <h3 class="text-lg font-semibold mb-4">Distribución de Trabajos por Día de la Semana</h3>
+        <canvas id="distribucionDiasChart"></canvas>
+    </div>
+
+    <!-- Sección 4: Ingresos vs Descuentos -->
+    <div class="bg-white p-4 rounded shadow-md">
+        <h3 class="text-lg font-semibold mb-4">Relación Ingresos vs Descuentos</h3>
+        <canvas id="ingresosVsDescuentosChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Colores personalizados para el salón de belleza
+        const salonColors = {
+            pink: 'rgba(236, 72, 153, 0.6)',
+            pinkDark: 'rgba(219, 39, 119, 0.8)',
+            purple: 'rgba(139, 92, 246, 0.6)',
+            teal: 'rgba(20, 184, 166, 0.6)',
+            yellow: 'rgba(234, 179, 8, 0.6)',
+            rose: 'rgba(244, 114, 182, 0.6)',
+            blue: 'rgba(59, 130, 246, 0.6)',
+            borderPink: 'rgb(236, 72, 153)',
+            borderPurple: 'rgb(139, 92, 246)',
+            borderTeal: 'rgb(20, 184, 166)',
+            borderYellow: 'rgb(234, 179, 8)',
+            borderRose: 'rgb(244, 114, 182)',
+            borderBlue: 'rgb(59, 130, 246)'
+        };
+
+        // Gráfica 1: Comparación de semanas
+        const comparacionSemanasChart = new Chart(
+            document.getElementById('comparacionSemanasChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: ['Sem 25', 'Sem 26', 'Sem 27', 'Sem 28', 'Sem 29', 'Esta Semana'],
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: [3500, 4200, 3800, 5100, 4600, 5200],
+                            backgroundColor: salonColors.pink,
+                            borderColor: salonColors.borderPink,
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Descuentos',
+                            data: [300, 450, 200, 600, 350, 400],
+                            backgroundColor: salonColors.purple,
+                            borderColor: salonColors.borderPurple,
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Total Final',
+                            data: [3200, 3750, 3600, 4500, 4250, 4800],
+                            backgroundColor: salonColors.teal,
+                            borderColor: salonColors.borderTeal,
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        // Gráfica 2: Evolución mensual
+        const evolucionMensualChart = new Chart(
+            document.getElementById('evolucionMensualChart'),
+            {
+                type: 'line',
+                data: {
+                    labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
+                    datasets: [
+                        {
+                            label: 'Ingresos Mensuales',
+                            data: [14500, 16200, 17800, 19500, 21000, 22500, 24000],
+                            borderColor: salonColors.borderPink,
+                            backgroundColor: salonColors.pink,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        // Gráfica 3: Top 5 trabajos más realizados
+        const topTrabajosChart = new Chart(
+            document.getElementById('topTrabajosChart'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: ['Corte Mujer', 'Tinte Completo', 'Manicure', 'Pedicure', 'Peinado'],
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: [42, 38, 35, 28, 24],
+                        backgroundColor: [
+                            salonColors.pink,
+                            salonColors.purple,
+                            salonColors.teal,
+                            salonColors.yellow,
+                            salonColors.rose
+                        ],
+                        borderColor: [
+                            salonColors.borderPink,
+                            salonColors.borderPurple,
+                            salonColors.borderTeal,
+                            salonColors.borderYellow,
+                            salonColors.borderRose
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw} servicios`;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        // Gráfica 4: Top 5 trabajos menos realizados
+        const menosTrabajosChart = new Chart(
+            document.getElementById('menosTrabajosChart'),
+            {
+                type: 'pie',
+                data: {
+                    labels: ['Extensiones', 'Trat. Capilar', 'Maquillaje', 'Depilación', 'Masajes'],
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: [8, 7, 6, 5, 3],
+                        backgroundColor: [
+                            salonColors.pink,
+                            salonColors.purple,
+                            salonColors.teal,
+                            salonColors.yellow,
+                            salonColors.rose
+                        ],
+                        borderColor: [
+                            salonColors.borderPink,
+                            salonColors.borderPurple,
+                            salonColors.borderTeal,
+                            salonColors.borderYellow,
+                            salonColors.borderRose
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw} servicios`;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        // Gráfica 5: Distribución por día de la semana
+        const distribucionDiasChart = new Chart(
+            document.getElementById('distribucionDiasChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+                    datasets: [{
+                        label: 'Cantidad de trabajos',
+                        data: [35, 42, 38, 45, 62, 58, 12],
+                        backgroundColor: salonColors.blue,
+                        borderColor: salonColors.borderBlue,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            }
+        );
+
+        // Gráfica 6: Relación ingresos vs descuentos
+        const ingresosVsDescuentosChart = new Chart(
+            document.getElementById('ingresosVsDescuentosChart'),
+            {
+                type: 'radar',
+                data: {
+                    labels: ['Sem 25', 'Sem 26', 'Sem 27', 'Sem 28', 'Sem 29', 'Esta Semana'],
+                    datasets: [
+                        {
+                            label: 'Ingresos ($)',
+                            data: [3500, 4200, 3800, 5100, 4600, 5200],
+                            fill: true,
+                            backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                            borderColor: salonColors.borderPink,
+                            pointBackgroundColor: salonColors.borderPink,
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: salonColors.borderPink
+                        },
+                        {
+                            label: 'Descuentos ($)',
+                            data: [300, 450, 200, 600, 350, 400],
+                            fill: true,
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                            borderColor: salonColors.borderPurple,
+                            pointBackgroundColor: salonColors.borderPurple,
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: salonColors.borderPurple
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 6000
+                        }
+                    }
+                }
+            }
+        );
+    });
+</script>
+
+<style>
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    canvas {
+        max-height: 300px;
+    }
+    
+    @media (min-width: 768px) {
+        .chart-container {
+            height: 350px;
+        }
+        
+        canvas {
+            max-height: 350px;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .chart-container {
+            height: 400px;
+        }
+        
+        canvas {
+            max-height: 400px;
+        }
+    }
+</style>
+
+{% endblock %}
