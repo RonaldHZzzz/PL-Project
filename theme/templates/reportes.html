@@ -3,70 +3,60 @@
 
 {% block title %}Reportes{% endblock %}
 
-{% block header %}
-<!-- Aquí puedes agregar contenido específico para el header si lo necesitas -->
-{% endblock %}
-
 {% block content %}
-<div class="max-w-full sm:max-w-3xl mx-auto mt-20 bg-white shadow-lg rounded-lg p-4 sm:p-10 backdrop-blur">
-    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-left">Generar reporte</h2>
+<div class="max-w-6xl mx-auto mt-16 px-4">
+    <h2 class="text-3xl font-bold text-center mb-8 text-pink-700">Resumen Semanal de Ingresos</h2>
 
-    <div id="date-range-picker" date-rangepicker class="flex flex-wrap items-center justify-center gap-2">
-        <div class="relative w-[45%]">
-            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                </svg>
-            </div>
-            <input id="datepicker-range-start" name="start" type="text" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5" placeholder="Fecha de inicio">
-        </div>
-        <span class="text-gray-700 text-sm">a</span>
-        <div class="relative w-[45%]">
-            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                </svg>
-            </div>
-            <input id="datepicker-range-end" name="end" type="text" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5" placeholder="Fecha de fin">
-        </div>
-        <div class="relative" style="top: 10px;">
-            <button class="bg-red-300 hover:bg-red-400 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
-                Descargar
-            </button>
-    
-        </div>
-    </div>
-    
-    
-
-    <!-- Botones de opciones -->
-    <div class="grid grid-cols-2 gap-6 mt-8 md:grid-cols-3">
-        <a href="{% url 'reporte_semanal' %}" class="bg-pink-200 hover:bg-pink-300 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-            <img src="{% static 'images/download.png' %}" alt="icono" class="h-5 w-5" />
-            Semanal
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for s in page_obj %}
+        <a href="{% url 'semana_detalle' s.anio s.semana %}"
+           class="bg-gradient-to-br from-white to-rose-100 rounded-2xl shadow-md border-l-4 border-pink-400 hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 block">
+            <h3 class="text-xl font-bold text-pink-600 mb-2">
+                Semana {{ s.semana }} - {{ s.anio }}<br>
+                <span class="text-sm text-gray-500">({{ s.inicio }} - {{ s.fin }})</span>
+            </h3>
+            <p class="text-md text-gray-600">
+                💰 Ingresos: <span class="font-semibold text-green-700">${{ s.ingresos }}</span>
+            </p>
+            <p class="text-md text-gray-600">
+                ❌ Descuentos: <span class="font-semibold text-red-600">${{ s.descuentos }}</span>
+            </p>
+            <p class="text-md text-gray-600">
+                ✅ Total final: <span class="font-semibold text-emerald-700">${{ s.total }}</span>
+            </p>
         </a>
-        <button class="bg-pink-300 hover:bg-pink-400 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-            <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
-            Semana anterior
-        </button>
-        <button class="bg-pink-200 hover:bg-pink-300 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-            <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
-            Mensual
-        </button>
-        <button class="bg-pink-300 hover:bg-pink-400 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-            <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
-            Mes anterior
-        </button>
-        <button class="bg-pink-200 hover:bg-pink-300 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-            <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
-            Anual
-        </button>
-        <button class="bg-pink-300 hover:bg-pink-400 text-white text-lg font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-            <img src={% static 'images/download.png' %} alt="icono" class="h-5 w-5" />
-            Año anterior
-        </button>
+        {% empty %}
+        <p class="text-center col-span-3 text-gray-500">No hay semanas registradas.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Controles de paginación -->
+    <div class="flex justify-center mt-8 space-x-4 items-center">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" 
+            class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
+                ← Página anterior
+            </a>
+        {% else %}
+            <span class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">
+                ← Página anterior
+            </span>
+        {% endif %}
+
+        <span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg shadow">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" 
+            class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
+                Página siguiente →
+            </a>
+        {% else %}
+            <span class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">
+                Página siguiente →
+            </span>
+        {% endif %}
     </div>
 </div>
-
 {% endblock %}
