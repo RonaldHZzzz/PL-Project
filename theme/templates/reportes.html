@@ -5,58 +5,192 @@
 
 {% block content %}
 <div class="max-w-6xl mx-auto mt-16 px-4">
-    <h2 class="text-3xl font-bold text-center mb-8 text-pink-700">Resumen Semanal de Ingresos</h2>
+    <h2 class="text-3xl font-bold text-center mb-8 text-pink-700">Reportes</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for s in page_obj %}
-        <a href="{% url 'semana_detalle' s.anio s.semana %}"
-           class="bg-gradient-to-br from-white to-rose-100 rounded-2xl shadow-md border-l-4 border-pink-400 hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 block">
-            <h3 class="text-xl font-bold text-pink-600 mb-2">
-                Semana {{ s.semana }} - {{ s.anio }}<br>
-                <span class="text-sm text-gray-500">({{ s.inicio }} - {{ s.fin }})</span>
-            </h3>
-            <p class="text-md text-gray-600">
-                💰 Ingresos: <span class="font-semibold text-green-700">${{ s.ingresos }}</span>
-            </p>
-            <p class="text-md text-gray-600">
-                ❌ Descuentos: <span class="font-semibold text-red-600">${{ s.descuentos }}</span>
-            </p>
-            <p class="text-md text-gray-600">
-                ✅ Total final: <span class="font-semibold text-emerald-700">${{ s.total }}</span>
-            </p>
-        </a>
-        {% empty %}
-        <p class="text-center col-span-3 text-gray-500">No hay semanas registradas.</p>
-        {% endfor %}
+    <!-- Toggle Tabs -->
+    <div class="flex mb-6 space-x-4 justify-center">
+        <button onclick="mostrar('nuevos')" id="btn-nuevos"
+            class="px-6 py-2 rounded-full font-semibold bg-pink-500 text-white shadow-md hover:bg-pink-600 transition-all">
+            Reportes Nuevos (Martes-Martes)
+        </button>
+        <button onclick="mostrar('anteriores')" id="btn-anteriores"
+            class="px-6 py-2 rounded-full font-semibold bg-gray-200 text-gray-800 shadow-md hover:bg-gray-300 transition-all">
+            Reportes Anteriores (Lunes-Domingo)
+        </button>
     </div>
 
-    <!-- Controles de paginación -->
-    <div class="flex justify-center mt-8 space-x-4 items-center">
-        {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" 
-            class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
+    <!-- Reportes NUEVOS (Martes-Martes) -->
+    <div id="reporte-nuevos" style="display: none;">
+        {% if page_obj_nuevos %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for s in page_obj_nuevos %}
+            <a href="{% url 'semana_detalle' s.anio s.semana %}?tipo=martes"
+                class="bg-gradient-to-br from-white to-rose-100 rounded-2xl shadow-md border-l-4 border-pink-400 hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 block">
+                <h3 class="text-xl font-bold text-pink-600 mb-2">
+                    Semana {{ s.semana }} - {{ s.anio }}<br>
+                    <span class="text-sm text-gray-500">(Martes {{ s.inicio }} - Lunes {{ s.fin }})</span>
+                </h3>
+                <p class="text-md text-gray-600">
+                    💰 Ingresos: <span class="font-semibold text-green-700">${{ s.ingresos }}</span>
+                </p>
+                <p class="text-md text-gray-600">
+                    ❌ Descuentos: <span class="font-semibold text-red-600">${{ s.descuentos }}</span>
+                </p>
+                <p class="text-md text-gray-600">
+                    ✅ Total final: <span class="font-semibold text-emerald-700">${{ s.total }}</span>
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación NUEVOS -->
+        <div class="flex justify-center mt-8 space-x-4 items-center">
+            {% if page_obj_nuevos.has_previous %}
+            <a href="?page_nuevos={{ page_obj_nuevos.previous_page_number }}&tab=nuevos"
+                class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
                 ← Página anterior
             </a>
-        {% else %}
-            <span class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">
-                ← Página anterior
+            {% else %}
+            <span
+                class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">← Página anterior</span>
+            {% endif %}
+
+            <span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg shadow">
+                Página {{ page_obj_nuevos.number }} de {{ page_obj_nuevos.paginator.num_pages }}
             </span>
+
+            {% if page_obj_nuevos.has_next %}
+            <a href="?page_nuevos={{ page_obj_nuevos.next_page_number }}&tab=nuevos"
+                class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
+                Página siguiente →
+            </a>
+            {% else %}
+            <span
+                class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">Página siguiente →</span>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-500 mb-4">No hay datos cargados para reportes nuevos</p>
+            <button onclick="cargarDatos('nuevos')"
+                class="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition">
+                Cargar Reportes Nuevos
+            </button>
+        </div>
         {% endif %}
+    </div>
 
-        <span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg shadow">
-            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-        </span>
+    <!-- Reportes ANTERIORES (Lunes-Domingo) -->
+    <div id="reporte-anteriores" style="display: none;">
+        {% if page_obj_anteriores %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for s in page_obj_anteriores %}
+            <a href="{% url 'semana_detalle' s.anio s.semana %}?tipo=iso"
+                class="bg-gradient-to-br from-white to-rose-100 rounded-2xl shadow-md border-l-4 border-pink-400 hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 block">
+                <h3 class="text-xl font-bold text-pink-600 mb-2">
+                    Semana {{ s.semana }} - {{ s.anio }}<br>
+                    <span class="text-sm text-gray-500">(Lunes {{ s.inicio }} - Domingo {{ s.fin }})</span>
+                </h3>
+                <p class="text-md text-gray-600">
+                    💰 Ingresos: <span class="font-semibold text-green-700">${{ s.ingresos }}</span>
+                </p>
+                <p class="text-md text-gray-600">
+                    ❌ Descuentos: <span class="font-semibold text-red-600">${{ s.descuentos }}</span>
+                </p>
+                <p class="text-md text-gray-600">
+                    ✅ Total final: <span class="font-semibold text-emerald-700">${{ s.total }}</span>
+                </p>
+            </a>
+            {% endfor %}
+        </div>
 
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" 
-            class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
+        <!-- Paginación ANTERIORES -->
+        <div class="flex justify-center mt-8 space-x-4 items-center">
+            {% if page_obj_anteriores.has_previous %}
+            <a href="?page_anteriores={{ page_obj_anteriores.previous_page_number }}&tab=anteriores"
+                class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
+                ← Página anterior
+            </a>
+            {% else %}
+            <span
+                class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">← Página anterior</span>
+            {% endif %}
+
+            <span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg shadow">
+                Página {{ page_obj_anteriores.number }} de {{ page_obj_anteriores.paginator.num_pages }}
+            </span>
+
+            {% if page_obj_anteriores.has_next %}
+            <a href="?page_anteriores={{ page_obj_anteriores.next_page_number }}&tab=anteriores"
+                class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
                 Página siguiente →
             </a>
+            {% else %}
+            <span
+                class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">Página siguiente →</span>
+            {% endif %}
+        </div>
         {% else %}
-            <span class="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed">
-                Página siguiente →
-            </span>
+        <div class="text-center py-12">
+            <p class="text-gray-500 mb-4">No hay datos cargados para reportes anteriores</p>
+            <button onclick="cargarDatos('anteriores')"
+                class="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition">
+                Cargar Reportes Anteriores
+            </button>
+        </div>
         {% endif %}
     </div>
 </div>
+
+<!-- JavaScript para alternar pestañas y cargar datos -->
+<script defer>
+    function mostrar(tipo) {
+        const nuevos = document.getElementById('reporte-nuevos');
+        const anteriores = document.getElementById('reporte-anteriores');
+        const btnNuevos = document.getElementById('btn-nuevos');
+        const btnAnteriores = document.getElementById('btn-anteriores');
+
+        // Actualizar la URL
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tipo);
+        window.history.pushState({}, '', url);
+
+        if (tipo === 'nuevos') {
+            nuevos.style.display = 'block';
+            anteriores.style.display = 'none';
+            btnNuevos.classList.add('bg-pink-500', 'text-white');
+            btnNuevos.classList.remove('bg-gray-200', 'text-gray-800');
+            btnAnteriores.classList.remove('bg-pink-500', 'text-white');
+            btnAnteriores.classList.add('bg-gray-200', 'text-gray-800');
+        } else {
+            nuevos.style.display = 'none';
+            anteriores.style.display = 'block';
+            btnAnteriores.classList.add('bg-pink-500', 'text-white');
+            btnAnteriores.classList.remove('bg-gray-200', 'text-gray-800');
+            btnNuevos.classList.remove('bg-pink-500', 'text-white');
+            btnNuevos.classList.add('bg-gray-200', 'text-gray-800');
+        }
+    }
+
+    function cargarDatos(tipo) {
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tipo);
+        window.location.href = url.toString();
+    }
+
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const tab = getQueryParam('tab');
+        if (tab === 'anteriores') {
+            mostrar('anteriores');
+        } else {
+            mostrar('nuevos');
+        }
+    });
+</script>
+
 {% endblock %}
