@@ -4,7 +4,24 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto mt-10 bg-white shadow-md rounded-lg p-6">
-    <h2 class="text-2xl font-bold text-pink-600 mb-4">Semana {{ semana }} - {{ anio }} ({{ fecha_inicio }} - {{ fecha_fin }})</h2>
+    <h2 class="text-2xl font-bold text-pink-600 mb-4">
+        Semana {{ semana }} - {{ anio }} 
+        <span class="text-lg font-normal">
+            ({% if tipo_semana == 'martes' %}Martes{% else %}Lunes{% endif %} {{ fecha_inicio|date:"d M" }} - 
+            {% if tipo_semana == 'martes' %}Lunes{% else %}Domingo{% endif %} {{ fecha_fin|date:"d M Y" }})
+        </span>
+    </h2>
+
+    <div class="mb-4">
+        <span class="px-3 py-1 rounded-full text-sm font-medium 
+                    {% if tipo_semana == 'martes' %}bg-pink-100 text-pink-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {% if tipo_semana == 'martes' %}
+                Semana Martes-Martes
+            {% else %}
+                Semana Lunes-Domingo
+            {% endif %}
+        </span>
+    </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-green-100 border-l-4 border-green-500 text-green-800 p-4 rounded-lg shadow">
@@ -23,14 +40,21 @@
 
     <hr class="my-4">
 
-    <h3 class="text-xl font-semibold mb-3">📝 Trabajos</h3>
+    <h3 class="text-xl font-semibold mb-3">📝 Trabajos ({{ trabajos.count }})</h3>
     {% if trabajos %}
+    <div class="mb-2">
+        <p class="text-sm text-gray-500">
+            Mostrando trabajos del {% if tipo_semana == 'martes' %}Martes{% else %}Lunes{% endif %} {{ fecha_inicio|date:"d M" }} al 
+            {% if tipo_semana == 'martes' %}Lunes{% else %}Domingo{% endif %} {{ fecha_fin|date:"d M Y" }}
+        </p>
+    </div>
     <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
         <thead class="bg-pink-100 text-pink-700">
             <tr>
                 <th class="px-4 py-2 text-left text-sm font-semibold">Trabajo</th>
                 <th class="px-4 py-2 text-right text-sm font-semibold">Monto</th>
                 <th class="px-4 py-2 text-center text-sm font-semibold">Fecha</th>
+                <th class="px-4 py-2 text-center text-sm font-semibold">Día</th>
             </tr>
         </thead>
         <tbody>
@@ -39,22 +63,30 @@
                 <td class="px-4 py-2 text-gray-800">{{ t.trabajo }}</td>
                 <td class="px-4 py-2 text-right text-green-600 font-semibold">${{ t.monto }}</td>
                 <td class="px-4 py-2 text-center text-gray-500 text-sm">{{ t.fecha_registro|date:"d M Y" }}</td>
+                <td class="px-4 py-2 text-center text-gray-500 text-sm">{{ t.fecha_registro|date:"l" }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-        <p class="text-gray-500">No hay trabajos registrados.</p>
+        <p class="text-gray-500">No hay trabajos registrados en este período.</p>
     {% endif %}
 
-    <h3 class="text-xl font-semibold mt-8 mb-3">🔻 Descuentos</h3>
+    <h3 class="text-xl font-semibold mt-8 mb-3">🔻 Descuentos ({{ descuentos.count }})</h3>
     {% if descuentos %}
+    <div class="mb-2">
+        <p class="text-sm text-gray-500">
+            Mostrando descuentos del {% if tipo_semana == 'martes' %}Martes{% else %}Lunes{% endif %} {{ fecha_inicio|date:"d M" }} al 
+            {% if tipo_semana == 'martes' %}Lunes{% else %}Domingo{% endif %} {{ fecha_fin|date:"d M Y" }}
+        </p>
+    </div>
     <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
         <thead class="bg-red-100 text-red-700">
             <tr>
                 <th class="px-4 py-2 text-left text-sm font-semibold">Descripción</th>
                 <th class="px-4 py-2 text-right text-sm font-semibold">Descuento</th>
                 <th class="px-4 py-2 text-center text-sm font-semibold">Fecha</th>
+                <th class="px-4 py-2 text-center text-sm font-semibold">Día</th>
             </tr>
         </thead>
         <tbody>
@@ -63,18 +95,19 @@
                 <td class="px-4 py-2 text-gray-800">{{ d.descripcion }}</td>
                 <td class="px-4 py-2 text-right text-red-600 font-semibold">-${{ d.descuento }}</td>
                 <td class="px-4 py-2 text-center text-gray-500 text-sm">{{ d.fecha_registro_descuento|date:"d M Y" }}</td>
+                <td class="px-4 py-2 text-center text-gray-500 text-sm">{{ d.fecha_registro_descuento|date:"l" }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-        <p class="text-gray-500">No hay descuentos registrados.</p>
+        <p class="text-gray-500">No hay descuentos registrados en este período.</p>
     {% endif %}
 
     <!-- Botón de regresar -->
     <a href="{% url 'reportes' %}" 
        class="inline-block mt-6 px-4 py-2 bg-pink-600 text-white font-semibold rounded-lg shadow hover:bg-pink-700 transition">
-        ← Regresar
+        ← Regresar a Reportes
     </a>
 </div>
 {% endblock %}
