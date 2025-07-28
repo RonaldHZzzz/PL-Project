@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta,date
+from datetime import datetime, timedelta,date,time
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from django.db.models.functions import ExtractWeek
+from django.db.models.functions import ExtractWeek,ExtractYear
 import difflib
 from collections import defaultdict, Counter
 from django.db.models import Count
@@ -119,89 +119,110 @@ def signin(request):
             'form': AuthenticationForm()
         })
     
-@login_required       
+@login_required
 def jobs(request):
-    # Obtener las fechas desde el formulario
     from_date = request.GET.get('from-date')
     to_date = request.GET.get('to-date')
     hoy = timezone.localtime().date()
-    semana_actual = hoy.isocalendar()[1]
-    anio_actual = hoy.year
 
-    # Filtrar los trabajos si las fechas están presentes
+    # Calcular el próximo martes
+    dias_hasta_proximo_martes = (1 - hoy.weekday()) % 7  # martes = 1
+    if dias_hasta_proximo_martes == 0:
+        dias_hasta_proximo_martes = 7  # si hoy es martes, se toma el próximo martes
+
+    martes_siguiente = hoy + timedelta(days=dias_hasta_proximo_martes)
+    martes_anterior = martes_siguiente - timedelta(days=7)
+
+    # Rango con hora
+    inicio_rango = datetime.combine(martes_anterior, time.min)  # martes anterior 00:00:00
+    fin_rango = datetime.combine(martes_siguiente, time.max)    # martes actual 23:59:59
+
+    # Si el usuario ingresó un filtro de fechas
     if from_date and to_date:
         trabajos = Trabajo.objects.filter(
-            fecha_registro__gte=from_date,  # fecha mayor o igual a 'Desde'
-            fecha_registro__lte=to_date     # fecha menor o igual a 'Hasta'
+            fecha_registro__gte=from_date,
+            fecha_registro__lte=to_date
         )
-        descuentos= Descuentos.objects.filter(
-           fecha_registro_descuento__gte=from_date,
-           fecha_registro_descuento__lte=to_date
-            
+        descuentos = Descuentos.objects.filter(
+            fecha_registro_descuento__gte=from_date,
+            fecha_registro_descuento__lte=to_date
         )
     else:
-        # Si no se proporciona ningún filtro, obtener todos los trabajos
         trabajos = Trabajo.objects.filter(
-        fecha_registro__year=anio_actual,
-        fecha_registro__week=semana_actual
+            fecha_registro__gte=inicio_rango,
+            fecha_registro__lte=fin_rango
         )
-          # Obtener todos los descuentos del usuario actual
         descuentos = Descuentos.objects.filter(
-        fecha_registro_descuento__year=anio_actual,
-        fecha_registro_descuento__week=semana_actual
+            fecha_registro_descuento__gte=inicio_rango,
+            fecha_registro_descuento__lte=fin_rango
         )
+ 
 
+    context = {
+        'trabajos': trabajos,
+        'descuentos': descuentos,
+        'desde': inicio_rango,
+        'hasta': fin_rango
+    }
     
-    context={
-            'trabajos':trabajos,
-            'descuentos':descuentos
-        }
-    
-    return render(request, 'jobs.html',context)
+    return render(request, 'jobs.html', context)
+
 
 @login_required
 def total(request):
-    # Obtener fecha actual
+    # Obtener fecha actual y calcular el rango de martes a martes
     hoy = timezone.localtime().date()
-    semana_actual = hoy.isocalendar()[1]
-    anio_actual = hoy.year
-    mes_actual = hoy.month
 
-    # Ingresos semanales
-    trabajos_semanales = Trabajo.objects.annotate(
-        semana=TruncWeek('fecha_registro'),
+    dias_hasta_proximo_martes = (1 - hoy.weekday()) % 7  # martes = 1
+    if dias_hasta_proximo_martes == 0:
+        dias_hasta_proximo_martes = 7  # si hoy es martes, usar el martes siguiente
+
+    martes_siguiente = hoy + timedelta(days=dias_hasta_proximo_martes)
+    martes_anterior = martes_siguiente - timedelta(days=7)
+
+    # Rango exacto con tiempo incluido
+    inicio_rango = datetime.combine(martes_anterior, time.min)
+    fin_rango = datetime.combine(martes_siguiente, time.max)
+
+    # --- Ingresos semanales (martes a martes) ---
+    trabajos_semanales = Trabajo.objects.filter(
+        fecha_registro__gte=inicio_rango,
+        fecha_registro__lte=fin_rango
+    ).annotate(
         dia_semana=ExtractIsoWeekDay('fecha_registro')
-    ).filter(
-        fecha_registro__year=anio_actual,
-        semana__week=semana_actual
     ).values('dia_semana').annotate(
         total=Sum('monto')
     )
 
     ingresos_por_dia = {i: 0 for i in range(1, 8)}
     for trabajo in trabajos_semanales:
-        ingresos_por_dia[trabajo['dia_semana']] = trabajo['total']
+        ingresos_por_dia[trabajo['dia_semana']] = trabajo['total'] or 0
+
     ingresos_por_dia_lista = [ingresos_por_dia[dia] for dia in range(1, 8)]
     total_semanal = sum(ingresos_por_dia_lista)
 
-    # Descuentos semanales
-    descuentos_semanales = Descuentos.objects.annotate(
-        semana=TruncWeek('fecha_registro_descuento'),
+    # --- Descuentos semanales (martes a martes) ---
+    descuentos_semanales = Descuentos.objects.filter(
+        fecha_registro_descuento__gte=inicio_rango,
+        fecha_registro_descuento__lte=fin_rango
+    ).annotate(
         dia_semana=ExtractIsoWeekDay('fecha_registro_descuento')
-    ).filter(
-        fecha_registro_descuento__year=anio_actual,
-        semana__week=semana_actual
     ).values('dia_semana').annotate(
         total=Sum('descuento')
     )
 
     descuentos_por_dia = {i: 0 for i in range(1, 8)}
-    for descuento in descuentos_semanales:
-        descuentos_por_dia[descuento['dia_semana']] = descuento['total']
+    for d in descuentos_semanales:
+        descuentos_por_dia[d['dia_semana']] = d['total'] or 0
+
     descuentos_por_dia_lista = [descuentos_por_dia[dia] for dia in range(1, 8)]
     total_descuento_semanal = sum(descuentos_por_dia_lista)
 
-    # Totales
+    # --- Totales generales ---
+    hoy_datetime = timezone.localtime()
+    anio_actual = hoy_datetime.year
+    mes_actual = hoy_datetime.month
+
     total_mensual = Trabajo.objects.filter(
         fecha_registro__year=anio_actual,
         fecha_registro__month=mes_actual
@@ -211,13 +232,13 @@ def total(request):
 
     total_final = max(0, total_semanal - total_descuento_semanal)
 
-    # Descuentos de la semana actual
+    # --- Descuentos dentro del rango actual ---
     descuento_semana_actual = Descuentos.objects.filter(
-        fecha_registro_descuento__year=anio_actual,
-        fecha_registro_descuento__week=semana_actual
+        fecha_registro_descuento__gte=inicio_rango,
+        fecha_registro_descuento__lte=fin_rango
     )
 
-    # Procesamiento del formulario
+    # --- Procesar formulario ---
     if request.method == 'POST':
         descuento_form = DescuentoForm(request.POST)
         if descuento_form.is_valid():
@@ -226,22 +247,22 @@ def total(request):
             descuento.save()
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                # Recalcular descuentos y total final
-                descuentos_actualizados = Descuentos.objects.annotate(
-                    semana=TruncWeek('fecha_registro_descuento'),
+                # Recalcular los descuentos
+                descuentos_actualizados = Descuentos.objects.filter(
+                    fecha_registro_descuento__gte=inicio_rango,
+                    fecha_registro_descuento__lte=fin_rango
+                ).annotate(
                     dia_semana=ExtractIsoWeekDay('fecha_registro_descuento')
-                ).filter(
-                    fecha_registro_descuento__year=anio_actual,
-                    semana__week=semana_actual
                 ).values('dia_semana').annotate(
                     total=Sum('descuento')
                 )
 
                 descuentos_por_dia_actual = {i: 0 for i in range(1, 8)}
                 for d in descuentos_actualizados:
-                    descuentos_por_dia_actual[d['dia_semana']] = d['total']
-                total_descuento_semanal_actualizado = sum([descuentos_por_dia_actual[dia] for dia in range(1, 8)])
-                total_final_actualizado = max(0, total_semanal - total_descuento_semanal_actualizado)
+                    descuentos_por_dia_actual[d['dia_semana']] = d['total'] or 0
+
+                total_descuento_actual = sum([descuentos_por_dia_actual[d] for d in range(1, 8)])
+                total_final_actualizado = max(0, total_semanal - total_descuento_actual)
 
                 return JsonResponse({
                     'success': True,
@@ -251,18 +272,18 @@ def total(request):
                         'fecha_registro_descuento': descuento.fecha_registro_descuento.strftime('%Y-%m-%d'),
                         'descuento': float(descuento.descuento),
                     },
-                    'total_descuento_semanal': float(total_descuento_semanal_actualizado),
+                    'total_descuento_semanal': float(total_descuento_actual),
                     'total_final': float(total_final_actualizado)
                 })
-            else:
-                return redirect('total')
+
+            return redirect('total')
         else:
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'errors': descuento_form.errors}, status=400)
     else:
         descuento_form = DescuentoForm()
 
-    # Contexto para renderizado
+    # --- Contexto ---
     context = {
         'total_semanal': total_semanal,
         'total_mensual': total_mensual,
@@ -274,57 +295,161 @@ def total(request):
         'descuento_semana_actual': descuento_semana_actual,
         'descuento_form': descuento_form,
         'total_final': total_final,
+        'desde': inicio_rango,
+        'hasta': fin_rango,
     }
 
     return render(request, 'total.html', context)
 
 @login_required
 def Report(request):
-    hoy = timezone.localtime().date()
-    anio_actual = hoy.year
-    semana_actual = hoy.isocalendar()[1]
+    # Configuración inicial
+    anio_actual = date.today().year
+    semana_corte = 27  # Semana de corte para reportes anteriores
+    
+    # Determinar el tipo de reporte a mostrar
+    tab = request.GET.get('tab', 'nuevos')
+    page_nuevos = request.GET.get('page_nuevos', 1)
+    page_anteriores = request.GET.get('page_anteriores', 1)
 
-    # Obtener totales de trabajos agrupados por semana (en año actual y semanas válidas)
-    ingresos_por_semana = Trabajo.objects.filter(
-        fecha_registro__year=anio_actual,
-        fecha_registro__week__lte=semana_actual
-    ).values('fecha_registro__week').annotate(total_ingresos=Sum('monto'))
+    context = {
+        'tab': tab,
+    }
 
-    # Diccionario para acceso rápido: {semana: total_ingresos}
-    ingresos_dict = {item['fecha_registro__week']: item['total_ingresos'] for item in ingresos_por_semana}
+    # Solo cargamos los datos necesarios según la pestaña seleccionada
+    if tab == 'anteriores':
+        # --- REPORTES ANTERIORES (Lunes-Domingo) ---
+        semanas_anteriores = []
+        for semana in reversed(range(1, semana_corte + 1)):
+            fecha_inicio = date.fromisocalendar(anio_actual, semana, 1)  # Lunes
+            fecha_fin = date.fromisocalendar(anio_actual, semana, 7)     # Domingo
+            
+            ingresos_query = Trabajo.objects.filter(
+                fecha_registro__gte=fecha_inicio,
+                fecha_registro__lte=fecha_fin
+            ).aggregate(total=Sum('monto'))
+            
+            descuentos_query = Descuentos.objects.filter(
+                fecha_registro_descuento__gte=fecha_inicio,
+                fecha_registro_descuento__lte=fecha_fin
+            ).aggregate(total=Sum('descuento'))
 
-    # Obtener totales de descuentos agrupados por semana
-    descuentos_por_semana = Descuentos.objects.filter(
-        fecha_registro_descuento__year=anio_actual,
-        fecha_registro_descuento__week__lte=semana_actual
-    ).values('fecha_registro_descuento__week').annotate(total_descuentos=Sum('descuento'))
+            semanas_anteriores.append({
+                'anio': anio_actual,
+                'semana': semana,
+                'inicio': fecha_inicio.strftime('%d %b'),
+                'fin': fecha_fin.strftime('%d %b'),
+                'ingresos': ingresos_query['total'] or 0,
+                'descuentos': descuentos_query['total'] or 0,
+                'total': max(0, (ingresos_query['total'] or 0) - (descuentos_query['total'] or 0)),
+                'tipo_semana': 'iso'
+            })
 
-    descuentos_dict = {item['fecha_registro_descuento__week']: item['total_descuentos'] for item in descuentos_por_semana}
+        paginator_anteriores = Paginator(semanas_anteriores, 6)
+        context['page_obj_anteriores'] = paginator_anteriores.get_page(page_anteriores)
+    
+    else:
+        # --- REPORTES NUEVOS (Martes-Martes) ---
+        semanas_nuevos = []
+        
+        # Identificamos semanas distintas con registros
+        trabajos_semanas = Trabajo.objects.annotate(
+            semana=ExtractWeek('fecha_registro'),
+            anio=ExtractYear('fecha_registro')
+        ).values('anio', 'semana').distinct()
+        
+        descuentos_semanas = Descuentos.objects.annotate(
+            semana=ExtractWeek('fecha_registro_descuento'),
+            anio=ExtractYear('fecha_registro_descuento')
+        ).values('anio', 'semana').distinct()
+        
+        # Combinamos y obtenemos semanas únicas
+        todas_semanas = set()
+        for item in trabajos_semanas:
+            todas_semanas.add((item['anio'], item['semana']))
+        for item in descuentos_semanas:
+            todas_semanas.add((item['anio'], item['semana']))
+        
+        # Procesamos solo semanas posteriores a la semana de corte
+        for anio, semana in todas_semanas:
+            if anio == anio_actual and semana <= semana_corte:
+                continue
+                
+            fecha_inicio = date.fromisocalendar(anio, semana, 2)  # Martes
+            fecha_fin = fecha_inicio + timedelta(days=6)           # Lunes siguiente
+            
+            ingresos = Trabajo.objects.filter(
+                fecha_registro__gte=fecha_inicio,
+                fecha_registro__lte=fecha_fin
+            ).aggregate(total=Sum('monto'))['total'] or 0
+            
+            descuentos = Descuentos.objects.filter(
+                fecha_registro_descuento__gte=fecha_inicio,
+                fecha_registro_descuento__lte=fecha_fin
+            ).aggregate(total=Sum('descuento'))['total'] or 0
 
-    semanas = []
-    for semana in reversed(range(1, semana_actual + 1)):
-        total_ingresos = ingresos_dict.get(semana, 0)
-        total_descuentos = descuentos_dict.get(semana, 0)
+            semanas_nuevos.append({
+                'anio': anio,
+                'semana': semana,
+                'inicio': fecha_inicio.strftime('%d %b'),
+                'fin': fecha_fin.strftime('%d %b'),
+                'ingresos': ingresos,
+                'descuentos': descuentos,
+                'total': max(0, ingresos - descuentos),
+                'tipo_semana': 'martes',
+                'fecha_inicio_real': fecha_inicio,
+                'fecha_fin_real': fecha_fin
+            })
+        
+        # Ordenamos por fecha descendente
+        semanas_nuevos.sort(key=lambda x: x['fecha_inicio_real'], reverse=True)
+        
+        paginator_nuevos = Paginator(semanas_nuevos, 6)
+        context['page_obj_nuevos'] = paginator_nuevos.get_page(page_nuevos)
+    
+    return render(request, 'reportes.html', context)
 
-        fecha_inicio_semana = date.fromisocalendar(anio_actual, semana, 1)
-        fecha_fin_semana = date.fromisocalendar(anio_actual, semana, 7)
+@login_required
+def semana_detalle(request, anio, semana):
+    
+    tipo_semana = request.GET.get('tipo', 'iso')
+    
+    if tipo_semana == 'martes':
+        fecha_inicio = date.fromisocalendar(anio, semana, 2)  # Martes
+        fecha_fin = fecha_inicio + timedelta(days=6)          # Lunes
+    else:
+        fecha_inicio = date.fromisocalendar(anio, semana, 1)  # Lunes
+        fecha_fin = date.fromisocalendar(anio, semana, 7)     # Domingo
+    
+    trabajos = Trabajo.objects.filter(
+        fecha_registro__gte=fecha_inicio,
+        fecha_registro__lte=fecha_fin
+    ).order_by('fecha_registro')
 
-        semanas.append({
-            'anio': anio_actual,
-            'semana': semana,
-            'inicio': fecha_inicio_semana.strftime('%d %b'),
-            'fin': fecha_fin_semana.strftime('%d %b'),
-            'ingresos': total_ingresos,
-            'descuentos': total_descuentos,
-            'total': max(0, total_ingresos - total_descuentos),
-        })
+    descuentos = Descuentos.objects.filter(
+        fecha_registro_descuento__gte=fecha_inicio,
+        fecha_registro_descuento__lte=fecha_fin
+    ).order_by('fecha_registro_descuento')
 
-    # Paginador - 4 semanas por página
-    paginator = Paginator(semanas, 4)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    total_ingresos = trabajos.aggregate(total=Sum('monto'))['total'] or 0
+    total_descuentos = descuentos.aggregate(total=Sum('descuento'))['total'] or 0
+    total_final = max(0, total_ingresos - total_descuentos)
 
-    return render(request, 'reportes.html', {'page_obj': page_obj})
+    context = {
+        'anio': anio,
+        'semana': semana,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'trabajos': trabajos,
+        'descuentos': descuentos,
+        'total_ingresos': total_ingresos,
+        'total_descuentos': total_descuentos,
+        'total_final': total_final,
+        'tipo_semana': tipo_semana,
+    }
+
+    return render(request, 'semana_detalle.html', context)
+
 
 
 @login_required
@@ -351,38 +476,6 @@ def eliminar_descuento(request, descuento_id):
     # Mostramos una página de confirmación
     return render(request, 'confirmar_eliminacion.html', {'descuento': descuento})
     
-@login_required
-def semana_detalle(request, anio, semana):
-    # Obtener fecha de inicio (lunes) y fin (domingo) de la semana ISO
-    fecha_inicio = date.fromisocalendar(anio, semana, 1)
-    fecha_fin = fecha_inicio + timedelta(days=6)
-
-    # ✅ Eliminar filtro por usuario
-    trabajos = Trabajo.objects.filter(
-        fecha_registro__range=(fecha_inicio, fecha_fin)
-    ).order_by('fecha_registro')
-
-    descuentos = Descuentos.objects.filter(
-        fecha_registro_descuento__range=(fecha_inicio, fecha_fin)
-    ).order_by('fecha_registro_descuento')
-
-    total_ingresos = trabajos.aggregate(total=Sum('monto'))['total'] or 0
-    total_descuentos = descuentos.aggregate(total=Sum('descuento'))['total'] or 0
-    total_final = max(0, total_ingresos - total_descuentos)
-
-    context = {
-        'anio': anio,
-        'semana': semana,
-        'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin,
-        'trabajos': trabajos,
-        'descuentos': descuentos,
-        'total_ingresos': total_ingresos,
-        'total_descuentos': total_descuentos,
-        'total_final': total_final,
-    }
-
-    return render(request, 'semana_detalle.html', context)
 
 
 @login_required
