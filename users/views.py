@@ -376,23 +376,24 @@ def Report(request):
                 continue
                 
             fecha_inicio = date.fromisocalendar(anio, semana, 2)  # Martes
-            fecha_fin = fecha_inicio + timedelta(days=6)           # Lunes siguiente
+            fecha_fin = fecha_inicio + timedelta(days=7)          # Martes siguiente
             
+            # Usamos __lt para excluir el martes siguiente a las 00:00
             ingresos = Trabajo.objects.filter(
                 fecha_registro__gte=fecha_inicio,
-                fecha_registro__lte=fecha_fin
+                fecha_registro__lt=fecha_fin
             ).aggregate(total=Sum('monto'))['total'] or 0
             
             descuentos = Descuentos.objects.filter(
                 fecha_registro_descuento__gte=fecha_inicio,
-                fecha_registro_descuento__lte=fecha_fin
+                fecha_registro_descuento__lt=fecha_fin
             ).aggregate(total=Sum('descuento'))['total'] or 0
 
             semanas_nuevos.append({
                 'anio': anio,
                 'semana': semana,
                 'inicio': fecha_inicio.strftime('%d %b'),
-                'fin': fecha_fin.strftime('%d %b'),
+                'fin': (fecha_fin - timedelta(seconds=1)).strftime('%d %b'),  # Mostramos "Martes X" como fin
                 'ingresos': ingresos,
                 'descuentos': descuentos,
                 'total': max(0, ingresos - descuentos),
@@ -416,20 +417,30 @@ def semana_detalle(request, anio, semana):
     
     if tipo_semana == 'martes':
         fecha_inicio = date.fromisocalendar(anio, semana, 2)  # Martes
-        fecha_fin = fecha_inicio + timedelta(days=6)          # Lunes
+        fecha_fin = fecha_inicio + timedelta(days=7)          # Martes siguiente
+        
+        trabajos = Trabajo.objects.filter(
+            fecha_registro__gte=fecha_inicio,
+            fecha_registro__lt=fecha_fin  # Excluye el martes siguiente
+        ).order_by('fecha_registro')
+
+        descuentos = Descuentos.objects.filter(
+            fecha_registro_descuento__gte=fecha_inicio,
+            fecha_registro_descuento__lt=fecha_fin
+        ).order_by('fecha_registro_descuento')
     else:
         fecha_inicio = date.fromisocalendar(anio, semana, 1)  # Lunes
         fecha_fin = date.fromisocalendar(anio, semana, 7)     # Domingo
-    
-    trabajos = Trabajo.objects.filter(
-        fecha_registro__gte=fecha_inicio,
-        fecha_registro__lte=fecha_fin
-    ).order_by('fecha_registro')
+        
+        trabajos = Trabajo.objects.filter(
+            fecha_registro__gte=fecha_inicio,
+            fecha_registro__lte=fecha_fin
+        ).order_by('fecha_registro')
 
-    descuentos = Descuentos.objects.filter(
-        fecha_registro_descuento__gte=fecha_inicio,
-        fecha_registro_descuento__lte=fecha_fin
-    ).order_by('fecha_registro_descuento')
+        descuentos = Descuentos.objects.filter(
+            fecha_registro_descuento__gte=fecha_inicio,
+            fecha_registro_descuento__lte=fecha_fin
+        ).order_by('fecha_registro_descuento')
 
     total_ingresos = trabajos.aggregate(total=Sum('monto'))['total'] or 0
     total_descuentos = descuentos.aggregate(total=Sum('descuento'))['total'] or 0
@@ -439,7 +450,7 @@ def semana_detalle(request, anio, semana):
         'anio': anio,
         'semana': semana,
         'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin,
+        'fecha_fin': fecha_fin - timedelta(seconds=1) if tipo_semana == 'martes' else fecha_fin,
         'trabajos': trabajos,
         'descuentos': descuentos,
         'total_ingresos': total_ingresos,
