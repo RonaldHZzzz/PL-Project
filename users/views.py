@@ -316,7 +316,6 @@ def Report(request):
         'tab': tab,
     }
 
-    # Solo cargamos los datos necesarios según la pestaña seleccionada
     if tab == 'anteriores':
         # --- REPORTES ANTERIORES (Lunes-Domingo) ---
         semanas_anteriores = []
@@ -349,60 +348,63 @@ def Report(request):
         context['page_obj_anteriores'] = paginator_anteriores.get_page(page_anteriores)
     
     else:
-        # --- REPORTES NUEVOS (Martes-Martes) ---
+        # --- REPORTES NUEVOS (Martes 00:00 a Martes 23:59) ---
         semanas_nuevos = []
         
-        # Identificamos semanas distintas con registros
-        trabajos_semanas = Trabajo.objects.annotate(
-            semana=ExtractWeek('fecha_registro'),
-            anio=ExtractYear('fecha_registro')
-        ).values('anio', 'semana').distinct()
+        # 1. Encontrar el primer martes después de la semana de corte
+        fecha_corte = date.fromisocalendar(anio_actual, semana_corte, 1)  # Lunes de semana_corte
+        primer_martes = fecha_corte + timedelta(days=(1 - fecha_corte.weekday()) % 7)
         
-        descuentos_semanas = Descuentos.objects.annotate(
-            semana=ExtractWeek('fecha_registro_descuento'),
-            anio=ExtractYear('fecha_registro_descuento')
-        ).values('anio', 'semana').distinct()
+        # 2. Calcular todos los martes hasta hoy
+        hoy = date.today()
+        martes_actual = hoy - timedelta(days=(hoy.weekday() - 1) % 7)
         
-        # Combinamos y obtenemos semanas únicas
-        todas_semanas = set()
-        for item in trabajos_semanas:
-            todas_semanas.add((item['anio'], item['semana']))
-        for item in descuentos_semanas:
-            todas_semanas.add((item['anio'], item['semana']))
+        # 3. Definir período a excluir (1-8 julio)
+        exclusion_inicio = date(anio_actual, 7, 1)
+        exclusion_fin = date(anio_actual, 7, 8)
         
-        # Procesamos solo semanas posteriores a la semana de corte
-        for anio, semana in todas_semanas:
-            if anio == anio_actual and semana <= semana_corte:
-                continue
-                
-            fecha_inicio = date.fromisocalendar(anio, semana, 2)  # Martes
-            fecha_fin = fecha_inicio + timedelta(days=7)          # Martes siguiente
+        # 4. Generar cada período Martes-Martes
+        fecha_inicio = primer_martes
+        while fecha_inicio < hoy:
+            fecha_fin = fecha_inicio + timedelta(days=7)
             
-            # Usamos __lt para excluir el martes siguiente a las 00:00
+            # Saltar el período de exclusión
+            if fecha_inicio <= exclusion_fin and fecha_fin >= exclusion_inicio:
+                fecha_inicio = fecha_fin
+                continue
+            
+            # Convertir a datetime con horas
+            inicio_rango = datetime.combine(fecha_inicio, time.min)
+            fin_rango = datetime.combine(fecha_fin, time.max)
+            
+            # Consultas con el rango exacto
             ingresos = Trabajo.objects.filter(
-                fecha_registro__gte=fecha_inicio,
-                fecha_registro__lt=fecha_fin
+                fecha_registro__gte=inicio_rango,
+                fecha_registro__lte=fin_rango
             ).aggregate(total=Sum('monto'))['total'] or 0
             
             descuentos = Descuentos.objects.filter(
-                fecha_registro_descuento__gte=fecha_inicio,
-                fecha_registro_descuento__lt=fecha_fin
+                fecha_registro_descuento__gte=inicio_rango,
+                fecha_registro_descuento__lte=fin_rango
             ).aggregate(total=Sum('descuento'))['total'] or 0
-
+            
             semanas_nuevos.append({
-                'anio': anio,
-                'semana': semana,
+                'anio': fecha_inicio.isocalendar()[0],
+                'semana': fecha_inicio.isocalendar()[1],
                 'inicio': fecha_inicio.strftime('%d %b'),
-                'fin': (fecha_fin - timedelta(seconds=1)).strftime('%d %b'),  # Mostramos "Martes X" como fin
+                'fin': fecha_fin.strftime('%d %b'),
                 'ingresos': ingresos,
                 'descuentos': descuentos,
                 'total': max(0, ingresos - descuentos),
                 'tipo_semana': 'martes',
-                'fecha_inicio_real': fecha_inicio,
-                'fecha_fin_real': fecha_fin
+                'fecha_inicio_real': inicio_rango,
+                'fecha_fin_real': fin_rango,
+                'es_periodo_actual': (fecha_inicio <= martes_actual < fecha_fin)
             })
+            
+            fecha_inicio = fecha_fin
         
-        # Ordenamos por fecha descendente
+        # 5. Ordenar por fecha descendente
         semanas_nuevos.sort(key=lambda x: x['fecha_inicio_real'], reverse=True)
         
         paginator_nuevos = Paginator(semanas_nuevos, 6)
