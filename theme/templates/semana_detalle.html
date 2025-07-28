@@ -8,7 +8,7 @@
         Semana {{ semana }} - {{ anio }} 
         <span class="text-lg font-normal">
             ({% if tipo_semana == 'martes' %}Martes{% else %}Lunes{% endif %} {{ fecha_inicio|date:"d M" }} - 
-            {% if tipo_semana == 'martes' %}Lunes{% else %}Domingo{% endif %} {{ fecha_fin|date:"d M Y" }})
+            {% if tipo_semana == 'martes' %}Martes{% else %}Domingo{% endif %} {{ fecha_fin|date:"d M Y" }})
         </span>
     </h2>
 
@@ -44,8 +44,8 @@
     {% if trabajos %}
     <div class="mb-2">
         <p class="text-sm text-gray-500">
-            Mostrando trabajos del {% if tipo_semana == 'martes' %}Martes{% else %}Lunes{% endif %} {{ fecha_inicio|date:"d M" }} al 
-            {% if tipo_semana == 'martes' %}Lunes{% else %}Domingo{% endif %} {{ fecha_fin|date:"d M Y" }}
+            Mostrando trabajos del Martes {{ fecha_inicio|date:"d M" }} al 
+            Martes {{ fecha_fin|date:"d M Y" }}
         </p>
     </div>
     <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
@@ -76,8 +76,8 @@
     {% if descuentos %}
     <div class="mb-2">
         <p class="text-sm text-gray-500">
-            Mostrando descuentos del {% if tipo_semana == 'martes' %}Martes{% else %}Lunes{% endif %} {{ fecha_inicio|date:"d M" }} al 
-            {% if tipo_semana == 'martes' %}Lunes{% else %}Domingo{% endif %} {{ fecha_fin|date:"d M Y" }}
+            Mostrando descuentos del Martes {{ fecha_inicio|date:"d M" }} al 
+            Martes {{ fecha_fin|date:"d M Y" }}
         </p>
     </div>
     <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
