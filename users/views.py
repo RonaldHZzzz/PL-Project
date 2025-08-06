@@ -125,19 +125,18 @@ def jobs(request):
     to_date = request.GET.get('to-date')
     hoy = timezone.localtime().date()
 
-    # Calcular el próximo martes
-    dias_hasta_proximo_martes = (1 - hoy.weekday()) % 7  # martes = 1
-    if dias_hasta_proximo_martes == 0:
-        dias_hasta_proximo_martes = 7  # si hoy es martes, se toma el próximo martes
+    # Calcular martes anterior y martes actual (incluyendo hoy si es martes)
+    if hoy.weekday() == 1:
+        martes_fin = hoy
+        martes_inicio = hoy - timedelta(days=7)
+    else:
+        dias_desde_martes = (hoy.weekday() - 1) % 7
+        martes_fin = hoy - timedelta(days=dias_desde_martes)
+        martes_inicio = martes_fin - timedelta(days=7)
 
-    martes_siguiente = hoy + timedelta(days=dias_hasta_proximo_martes)
-    martes_anterior = martes_siguiente - timedelta(days=7)
+    inicio_rango = datetime.combine(martes_inicio, time.min)
+    fin_rango = datetime.combine(martes_fin, time.max)
 
-    # Rango con hora
-    inicio_rango = datetime.combine(martes_anterior, time.min)  # martes anterior 00:00:00
-    fin_rango = datetime.combine(martes_siguiente, time.max)    # martes actual 23:59:59
-
-    # Si el usuario ingresó un filtro de fechas
     if from_date and to_date:
         trabajos = Trabajo.objects.filter(
             fecha_registro__gte=from_date,
@@ -156,7 +155,6 @@ def jobs(request):
             fecha_registro_descuento__gte=inicio_rango,
             fecha_registro_descuento__lte=fin_rango
         )
- 
 
     context = {
         'trabajos': trabajos,
@@ -164,25 +162,27 @@ def jobs(request):
         'desde': inicio_rango,
         'hasta': fin_rango
     }
-    
+
     return render(request, 'jobs.html', context)
+
 
 
 @login_required
 def total(request):
-    # Obtener fecha actual y calcular el rango de martes a martes
+    # Obtener fecha actual y calcular el rango de martes a martes (incluye martes actual completo)
     hoy = timezone.localtime().date()
 
-    dias_hasta_proximo_martes = (1 - hoy.weekday()) % 7  # martes = 1
-    if dias_hasta_proximo_martes == 0:
-        dias_hasta_proximo_martes = 7  # si hoy es martes, usar el martes siguiente
-
-    martes_siguiente = hoy + timedelta(days=dias_hasta_proximo_martes)
-    martes_anterior = martes_siguiente - timedelta(days=7)
+    if hoy.weekday() == 1:  # Si hoy es martes
+        martes_fin = hoy
+        martes_inicio = hoy - timedelta(days=7)
+    else:
+        dias_desde_martes = (hoy.weekday() - 1) % 7
+        martes_fin = hoy - timedelta(days=dias_desde_martes)
+        martes_inicio = martes_fin - timedelta(days=7)
 
     # Rango exacto con tiempo incluido
-    inicio_rango = datetime.combine(martes_anterior, time.min)
-    fin_rango = datetime.combine(martes_siguiente, time.max)
+    inicio_rango = datetime.combine(martes_inicio, time.min)
+    fin_rango = datetime.combine(martes_fin, time.max)
 
     # --- Ingresos semanales (martes a martes) ---
     trabajos_semanales = Trabajo.objects.filter(
