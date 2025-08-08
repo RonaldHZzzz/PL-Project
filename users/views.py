@@ -125,18 +125,16 @@ def jobs(request):
     to_date = request.GET.get('to-date')
     hoy = timezone.localtime().date()
 
-    # Calcular martes anterior y martes actual (incluyendo hoy si es martes)
-    if hoy.weekday() == 1:
-        martes_fin = hoy
-        martes_inicio = hoy - timedelta(days=7)
-    else:
-        dias_desde_martes = (hoy.weekday() - 1) % 7
-        martes_fin = hoy - timedelta(days=dias_desde_martes)
-        martes_inicio = martes_fin - timedelta(days=7)
+    # --- Calcular martes de la semana actual y martes de la semana siguiente ---
+    dias_desde_martes = (hoy.weekday() - 1) % 7
+    martes_inicio = hoy - timedelta(days=dias_desde_martes)
+    martes_fin = martes_inicio + timedelta(days=7)
 
+    # Rango exacto con horas
     inicio_rango = datetime.combine(martes_inicio, time.min)
     fin_rango = datetime.combine(martes_fin, time.max)
 
+    # --- Filtrado ---
     if from_date and to_date:
         trabajos = Trabajo.objects.filter(
             fecha_registro__gte=from_date,
@@ -146,6 +144,9 @@ def jobs(request):
             fecha_registro_descuento__gte=from_date,
             fecha_registro_descuento__lte=to_date
         )
+        # Para mostrar en pantalla las fechas seleccionadas
+        desde_mostrar = from_date
+        hasta_mostrar = to_date
     else:
         trabajos = Trabajo.objects.filter(
             fecha_registro__gte=inicio_rango,
@@ -155,12 +156,15 @@ def jobs(request):
             fecha_registro_descuento__gte=inicio_rango,
             fecha_registro_descuento__lte=fin_rango
         )
+        desde_mostrar = inicio_rango
+        hasta_mostrar = fin_rango
 
+    # --- Contexto ---
     context = {
         'trabajos': trabajos,
         'descuentos': descuentos,
-        'desde': inicio_rango,
-        'hasta': fin_rango
+        'desde': desde_mostrar,
+        'hasta': hasta_mostrar
     }
 
     return render(request, 'jobs.html', context)
@@ -172,15 +176,14 @@ def total(request):
     # Obtener fecha actual y calcular el rango de martes a martes (incluye martes actual completo)
     hoy = timezone.localtime().date()
 
-    if hoy.weekday() == 1:  # Si hoy es martes
-        martes_fin = hoy
-        martes_inicio = hoy - timedelta(days=7)
-    else:
-        dias_desde_martes = (hoy.weekday() - 1) % 7
-        martes_fin = hoy - timedelta(days=dias_desde_martes)
-        martes_inicio = martes_fin - timedelta(days=7)
+    # Calcular martes de esta semana
+    dias_desde_martes = (hoy.weekday() - 1) % 7
+    martes_inicio = hoy - timedelta(days=dias_desde_martes)
 
-    # Rango exacto con tiempo incluido
+    # Calcular martes de la semana siguiente
+    martes_fin = martes_inicio + timedelta(days=7)
+
+    # Rango exacto con tiempo
     inicio_rango = datetime.combine(martes_inicio, time.min)
     fin_rango = datetime.combine(martes_fin, time.max)
 
