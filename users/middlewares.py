@@ -19,6 +19,7 @@ class SessionTimeoutMiddleware:
                 if elapsed_time > settings.SESSION_COOKIE_AGE:
                     from django.contrib.auth import logout
                     logout(request)
+          
                     return redirect('/')
 
             # Actualizar el tiempo de última actividad
