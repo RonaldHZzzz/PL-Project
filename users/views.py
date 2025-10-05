@@ -128,11 +128,11 @@ def jobs(request):
     # --- Calcular martes de la semana actual y martes de la semana siguiente ---
     dias_desde_martes = (hoy.weekday() - 1) % 7
     martes_inicio = hoy - timedelta(days=dias_desde_martes)
-    martes_fin = martes_inicio + timedelta(days=7)
+    martes_fin = martes_inicio + timedelta(days=6) # Martes a Lunes son 6 dias. El martes siguiente es el dia 7.
 
     # Rango exacto con horas
     inicio_rango = datetime.combine(martes_inicio, time.min)
-    fin_rango = datetime.combine(martes_fin, time.max)
+    fin_rango = datetime.combine(martes_inicio + timedelta(days=7), time.max) # El fin es el siguiente martes a las 23:59
 
     # --- Filtrado ---
     if from_date and to_date:
@@ -180,12 +180,12 @@ def total(request):
     dias_desde_martes = (hoy.weekday() - 1) % 7
     martes_inicio = hoy - timedelta(days=dias_desde_martes)
 
-    # Calcular martes de la semana siguiente
-    martes_fin = martes_inicio + timedelta(days=7)
+    # El período termina el siguiente martes a las 23:59:59
+    martes_fin_cierre = martes_inicio + timedelta(days=7)
 
     # Rango exacto con tiempo
     inicio_rango = datetime.combine(martes_inicio, time.min)
-    fin_rango = datetime.combine(martes_fin, time.max)
+    fin_rango = datetime.combine(martes_fin_cierre, time.max)
 
     # --- Ingresos semanales (martes a martes) ---
     trabajos_semanales = Trabajo.objects.filter(
@@ -422,16 +422,20 @@ def semana_detalle(request, anio, semana):
     
     if tipo_semana == 'martes':
         fecha_inicio = date.fromisocalendar(anio, semana, 2)  # Martes
-        fecha_fin = fecha_inicio + timedelta(days=7)          # Martes siguiente
+        fecha_fin_cierre = fecha_inicio + timedelta(days=7)   # Martes siguiente
+
+        # Rango exacto con tiempo para incluir todo el día martes de cierre
+        inicio_rango = datetime.combine(fecha_inicio, time.min)
+        fin_rango = datetime.combine(fecha_fin_cierre, time.max)
         
         trabajos = Trabajo.objects.filter(
-            fecha_registro__gte=fecha_inicio,
-            fecha_registro__lt=fecha_fin  # Excluye el martes siguiente
+            fecha_registro__gte=inicio_rango,
+            fecha_registro__lte=fin_rango
         ).order_by('fecha_registro')
 
         descuentos = Descuentos.objects.filter(
-            fecha_registro_descuento__gte=fecha_inicio,
-            fecha_registro_descuento__lt=fecha_fin
+            fecha_registro_descuento__gte=inicio_rango,
+            fecha_registro_descuento__lte=fin_rango
         ).order_by('fecha_registro_descuento')
     else:
         fecha_inicio = date.fromisocalendar(anio, semana, 1)  # Lunes
@@ -455,7 +459,7 @@ def semana_detalle(request, anio, semana):
         'anio': anio,
         'semana': semana,
         'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin - timedelta(seconds=1) if tipo_semana == 'martes' else fecha_fin,
+        'fecha_fin': fecha_fin_cierre if tipo_semana == 'martes' else fecha_fin,
         'trabajos': trabajos,
         'descuentos': descuentos,
         'total_ingresos': total_ingresos,
