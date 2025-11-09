@@ -125,14 +125,13 @@ def jobs(request):
     to_date = request.GET.get('to-date')
     hoy = timezone.localtime().date()
 
-    # --- Calcular martes de la semana actual y martes de la semana siguiente ---
-    dias_desde_martes = (hoy.weekday() - 1) % 7
-    martes_inicio = hoy - timedelta(days=dias_desde_martes)
-    martes_fin = martes_inicio + timedelta(days=6) # Martes a Lunes son 6 dias. El martes siguiente es el dia 7.
+    # --- Calcular miércoles de la semana actual y miércoles de la semana siguiente ---
+    dias_desde_miercoles = (hoy.weekday() - 2) % 7
+    miercoles_inicio = hoy - timedelta(days=dias_desde_miercoles)
 
     # Rango exacto con horas
-    inicio_rango = datetime.combine(martes_inicio, time.min)
-    fin_rango = datetime.combine(martes_inicio + timedelta(days=7), time.max) # El fin es el siguiente martes a las 23:59
+    inicio_rango = datetime.combine(miercoles_inicio, time.min)
+    fin_rango = datetime.combine(miercoles_inicio + timedelta(days=7), time.max) # El fin es el siguiente miércoles a las 23:59
 
     # --- Filtrado ---
     if from_date and to_date:
@@ -174,20 +173,21 @@ def jobs(request):
 @login_required
 def total(request):
     # Obtener fecha actual y calcular el rango de martes a martes (incluye martes actual completo)
+    # CORREGIDO: Ahora es de miércoles a miércoles.
     hoy = timezone.localtime().date()
 
-    # Calcular martes de esta semana
-    dias_desde_martes = (hoy.weekday() - 1) % 7
-    martes_inicio = hoy - timedelta(days=dias_desde_martes)
+    # Calcular miércoles de esta semana
+    dias_desde_miercoles = (hoy.weekday() - 2) % 7
+    miercoles_inicio = hoy - timedelta(days=dias_desde_miercoles)
 
-    # El período termina el siguiente martes a las 23:59:59
-    martes_fin_cierre = martes_inicio + timedelta(days=7)
+    # El período termina el siguiente miércoles a las 23:59:59
+    miercoles_fin_cierre = miercoles_inicio + timedelta(days=7)
 
     # Rango exacto con tiempo
-    inicio_rango = datetime.combine(martes_inicio, time.min)
-    fin_rango = datetime.combine(martes_fin_cierre, time.max)
+    inicio_rango = datetime.combine(miercoles_inicio, time.min)
+    fin_rango = datetime.combine(miercoles_fin_cierre, time.max)
 
-    # --- Ingresos semanales (martes a martes) ---
+    # --- Ingresos semanales (miércoles a miércoles) ---
     trabajos_semanales = Trabajo.objects.filter(
         fecha_registro__gte=inicio_rango,
         fecha_registro__lte=fin_rango
@@ -204,7 +204,7 @@ def total(request):
     ingresos_por_dia_lista = [ingresos_por_dia[dia] for dia in range(1, 8)]
     total_semanal = sum(ingresos_por_dia_lista)
 
-    # --- Descuentos semanales (martes a martes) ---
+    # --- Descuentos semanales (miércoles a miércoles) ---
     descuentos_semanales = Descuentos.objects.filter(
         fecha_registro_descuento__gte=inicio_rango,
         fecha_registro_descuento__lte=fin_rango
@@ -351,23 +351,23 @@ def Report(request):
         context['page_obj_anteriores'] = paginator_anteriores.get_page(page_anteriores)
     
     else:
-        # --- REPORTES NUEVOS (Martes 00:00 a Martes 23:59) ---
+        # --- REPORTES NUEVOS (Miércoles 00:00 a Miércoles 23:59) ---
         semanas_nuevos = []
         
-        # 1. Encontrar el primer martes después de la semana de corte
+        # 1. Encontrar el primer miércoles después de la semana de corte
         fecha_corte = date.fromisocalendar(anio_actual, semana_corte, 1)  # Lunes de semana_corte
-        primer_martes = fecha_corte + timedelta(days=(1 - fecha_corte.weekday()) % 7)
+        primer_miercoles = fecha_corte + timedelta(days=(2 - fecha_corte.weekday() + 7) % 7)
         
-        # 2. Calcular todos los martes hasta hoy
+        # 2. Calcular todos los miércoles hasta hoy
         hoy = date.today()
-        martes_actual = hoy - timedelta(days=(hoy.weekday() - 1) % 7)
+        miercoles_actual = hoy - timedelta(days=(hoy.weekday() - 2 + 7) % 7)
         
         # 3. Definir período a excluir (1-8 julio)
         exclusion_inicio = date(anio_actual, 7, 1)
         exclusion_fin = date(anio_actual, 7, 8)
         
-        # 4. Generar cada período Martes-Martes
-        fecha_inicio = primer_martes
+        # 4. Generar cada período Miércoles-Miércoles
+        fecha_inicio = primer_miercoles
         while fecha_inicio < hoy:
             fecha_fin = fecha_inicio + timedelta(days=7)
             
@@ -402,7 +402,7 @@ def Report(request):
                 'tipo_semana': 'martes',
                 'fecha_inicio_real': inicio_rango,
                 'fecha_fin_real': fin_rango,
-                'es_periodo_actual': (fecha_inicio <= martes_actual < fecha_fin)
+                'es_periodo_actual': (fecha_inicio <= miercoles_actual < fecha_fin)
             })
             
             fecha_inicio = fecha_fin

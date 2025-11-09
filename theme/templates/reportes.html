@@ -11,7 +11,7 @@
     <div class="flex mb-6 space-x-4 justify-center">
         <button onclick="mostrar('nuevos')" id="btn-nuevos"
             class="px-6 py-2 rounded-full font-semibold bg-pink-500 text-white shadow-md hover:bg-pink-600 transition-all">
-            Reportes Nuevos (Martes-Martes)
+            Reportes Nuevos (Miércoles-Martes)
         </button>
         <button onclick="mostrar('anteriores')" id="btn-anteriores"
             class="px-6 py-2 rounded-full font-semibold bg-gray-200 text-gray-800 shadow-md hover:bg-gray-300 transition-all">
@@ -28,7 +28,7 @@
                 class="bg-gradient-to-br from-white to-rose-100 rounded-2xl shadow-md border-l-4 border-pink-400 hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 block">
                 <h3 class="text-xl font-bold text-pink-600 mb-2">
                     Semana {{ s.semana }} - {{ s.anio }}<br>
-                    <span class="text-sm text-gray-500">(Martes {{ s.inicio }} - Martes {{ s.fin }})</span>
+                    <span class="text-sm text-gray-500">(Miércoles {{ s.inicio }} - Martes {{ s.fin }})</span>
                 </h3>
                 <p class="text-md text-gray-600">
                     💰 Ingresos: <span class="font-semibold text-green-700">${{ s.ingresos }}</span>
