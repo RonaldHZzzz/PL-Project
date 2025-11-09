@@ -172,9 +172,7 @@ SESSION_COOKIE_AGE = 600  # Tiempo en segundos antes de que expire la sesión
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Cierra la sesión al cerrar el navegador
 SESSION_SAVE_EVERY_REQUEST = True  # Renueva la sesión con cada solicitud
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net'
-]
+CSRF_TRUSTED_ORIGINS = [os.environ.get('CSRF_TRUSTED_ORIGINS')]
 
 # Seguridad CSRF y sesiones
 CSRF_COOKIE_SECURE = True
