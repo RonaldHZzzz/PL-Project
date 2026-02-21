@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY',default='your secret key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1','plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'plsalon-gfbegubne8g0fzdz.canadacentral-01.azurewebsites.net', '169.254.129.4', '169.254.129.1']
 
 
 
