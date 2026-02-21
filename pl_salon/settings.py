@@ -105,6 +105,10 @@ DATABASES = {
     }
 
 }
+
+if not DEBUG:
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+
 print(f'Current database engine is {DATABASES["default"]["NAME"]}')
 
 
@@ -159,8 +163,11 @@ else:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-NPM_BIN_PATH = 'npm.cmd'
-NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+# NPM_BIN_PATH configurations
+if os.name == 'nt':  # Windows
+    NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+else:  # Linux/Azure
+    NPM_BIN_PATH = 'npm'
 
 #configuracion para sesiones basaas en cookies
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Puedes usar 'cache' si prefieres almacenamiento en memoria
