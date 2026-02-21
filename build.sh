@@ -3,6 +3,9 @@
 # Activa el modo de salida inmediata ante errores
 set -o errexit
 
+# Elimina paquetes conflictivos si existen (evita colisiones con django-tailwind)
+pip uninstall -y tailwind npm || true
+
 # Instala las dependencias
 pip install -r requirements.txt
 
