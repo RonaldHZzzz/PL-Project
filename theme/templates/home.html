@@ -11,124 +11,134 @@
     <div class="bg-white p-6 rounded-lg shadow-md">
         <form id="trabajoForm" method="post" class="flex flex-col items-center py-6">
             {% csrf_token %}
-            
+
             <!-- Trabajo -->
             <label for="trabajo" class="text-lg font-semibold mb-2 text-center">Trabajo realizado</label>
             <input type="text" name="trabajo" id="trabajo" placeholder="Escribe aquí"
-                   class="w-full max-w-xs rounded-lg border border-gray-300 p-3 shadow-sm mb-6" required>
-            
+                class="w-full max-w-xs rounded-lg border border-gray-300 p-3 shadow-sm mb-6" required>
+
             <!-- Monto -->
             <label for="monto" class="text-lg font-semibold mb-2 text-center">Monto</label>
-            <div class="flex items-center space-x-2 justify-center">
+            <div class="flex items-center space-x-2 justify-center mb-6">
                 <input type="number" step="0.01" name="monto" id="monto" placeholder="00.00"
-                       class="w-24 rounded-lg border border-gray-300 p-3 shadow-sm text-center" required>
+                    class="w-24 rounded-lg border border-gray-300 p-3 shadow-sm text-center" required>
                 <span class="text-lg font-bold">$</span>
             </div>
-            
+
+            <!-- Fecha -->
+            <label for="fecha_registro" class="text-lg font-semibold mb-2 text-center">Fecha de registro</label>
+            <input type="date" name="fecha_registro" id="fecha_registro"
+                class="w-full max-w-xs rounded-lg border border-gray-300 p-3 shadow-sm mb-6" required>
+
             <!-- Botón de envío -->
-            <button id="submitBtn" type="submit" class="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg shadow-md hover:bg-pink-600 flex items-center justify-center space-x-2">
-                <svg id="spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            <button id="submitBtn" type="submit"
+                class="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg shadow-md hover:bg-pink-600 flex items-center justify-center space-x-2">
+                <svg id="spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                 </svg>
                 <span id="btnText">Registrar Trabajo</span>
             </button>
         </form>
-        
+
 
         <!-- Lista de trabajos -->
-      <div id="listaTrabajos" class="space-y-4">
-    {% for trabajo in trabajos %}
-        <div data-id="{{ trabajo.id }}" class="bg-rose-100 border border-rose-300 rounded-lg shadow-md p-4 flex items-start justify-between">
-            <div>
-                <p class="text-sm text-gray-700 font-medium">{{ trabajo.fecha_registro }}</p>
-                <h3 class="text-lg font-semibold text-rose-800">{{ trabajo.trabajo }}</h3>
-                <p class="text-sm text-gray-600">Registrado por <span class="font-bold text-rose-700">{{ trabajo.usuario }}</span></p>
+        <div id="listaTrabajos" class="space-y-4">
+            {% for trabajo in trabajos %}
+            <div data-id="{{ trabajo.id }}"
+                class="bg-rose-100 border border-rose-300 rounded-lg shadow-md p-4 flex items-start justify-between">
+                <div>
+                    <p class="text-sm text-gray-700 font-medium">{{ trabajo.fecha_registro }}</p>
+                    <h3 class="text-lg font-semibold text-rose-800">{{ trabajo.trabajo }}</h3>
+                    <p class="text-sm text-gray-600">Registrado por <span class="font-bold text-rose-700">{{
+                            trabajo.usuario }}</span></p>
+                </div>
+                <div class="text-right">
+                    <span class="text-rose-600 font-bold text-xl">${{ trabajo.monto }}</span>
+                    <div class="mt-1 text-rose-500 text-sm">✔ Trabajo guardado</div>
+                </div>
             </div>
-            <div class="text-right">
-                <span class="text-rose-600 font-bold text-xl">${{ trabajo.monto }}</span>
-                <div class="mt-1 text-rose-500 text-sm">✔ Trabajo guardado</div>
-            </div>
+            {% empty %}
+            <p class="text-center text-gray-500">No hay trabajos registrados.</p>
+            {% endfor %}
         </div>
-    {% empty %}
-        <p class="text-center text-gray-500">No hay trabajos registrados.</p>
-    {% endfor %}
-</div>
-</div>
+    </div>
 
-<!-- Mensaje flotante / toast -->
-<div id="toast" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity duration-500 z-50">
-    Trabajo registrado exitosamente ✔️
-</div>
+    <!-- Mensaje flotante / toast -->
+    <div id="toast"
+        class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity duration-500 z-50">
+        Trabajo registrado exitosamente ✔️
+    </div>
 
-<script>
-    const toast = document.getElementById('toast');
-    const submitBtn = document.getElementById('submitBtn');
-    const spinner = document.getElementById('spinner');
-    const btnText = document.getElementById('btnText');
+    <script>
+        const toast = document.getElementById('toast');
+        const submitBtn = document.getElementById('submitBtn');
+        const spinner = document.getElementById('spinner');
+        const btnText = document.getElementById('btnText');
 
-    function showToast(message) {
-        toast.textContent = message;
-        toast.classList.remove('opacity-0', 'pointer-events-none');
-        toast.classList.add('opacity-100');
-        // Desaparece después de 3 segundos
-        setTimeout(() => {
-            toast.classList.add('opacity-0', 'pointer-events-none');
-            toast.classList.remove('opacity-100');
-        }, 3000);
-    }
-
-    function toggleButtonLoading(isLoading) {
-        if (isLoading) {
-            spinner.classList.remove('hidden');
-            btnText.textContent = 'Registrando...';
-            submitBtn.disabled = true;
-            submitBtn.classList.add('cursor-not-allowed', 'opacity-70');
-        } else {
-            spinner.classList.add('hidden');
-            btnText.textContent = 'Registrar Trabajo';
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('cursor-not-allowed', 'opacity-70');
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            // Desaparece después de 3 segundos
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+                toast.classList.remove('opacity-100');
+            }, 3000);
         }
-    }
 
-    document.getElementById('trabajoForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        toggleButtonLoading(true);
-
-        const form = e.target;
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                },
-                body: formData,
-            });
-
-            toggleButtonLoading(false);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                alert('Error: ' + JSON.stringify(errorData.errors));
-                return;
+        function toggleButtonLoading(isLoading) {
+            if (isLoading) {
+                spinner.classList.remove('hidden');
+                btnText.textContent = 'Registrando...';
+                submitBtn.disabled = true;
+                submitBtn.classList.add('cursor-not-allowed', 'opacity-70');
+            } else {
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Registrar Trabajo';
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('cursor-not-allowed', 'opacity-70');
             }
+        }
 
-            const data = await response.json();
+        document.getElementById('trabajoForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-            if (data.success) {
-                const trabajo = data.trabajo;
+            toggleButtonLoading(true);
 
-                // Crear nuevo elemento li para el trabajo
-                const tarjeta = document.createElement('div');
-                tarjeta.dataset.id = trabajo.id;
-                tarjeta.className = 'bg-rose-100 border border-rose-300 rounded-lg shadow-md p-4 flex items-start justify-between';
+            const form = e.target;
+            const formData = new FormData(form);
 
-                tarjeta.innerHTML = `
+            try {
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                    },
+                    body: formData,
+                });
+
+                toggleButtonLoading(false);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert('Error: ' + JSON.stringify(errorData.errors));
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const trabajo = data.trabajo;
+
+                    // Crear nuevo elemento li para el trabajo
+                    const tarjeta = document.createElement('div');
+                    tarjeta.dataset.id = trabajo.id;
+                    tarjeta.className = 'bg-rose-100 border border-rose-300 rounded-lg shadow-md p-4 flex items-start justify-between';
+
+                    tarjeta.innerHTML = `
                 <div>
                     <p class="text-sm text-gray-700 font-medium">${trabajo.fecha_registro}</p>
                     <h3 class="text-lg font-semibold text-rose-800">${trabajo.trabajo}</h3>
@@ -140,29 +150,38 @@
                 </div>
                 `;
 
-                // Insertar al inicio de la lista
-                const lista = document.getElementById('listaTrabajos');
-                
-                // Si la lista tiene un <p> que dice "No hay trabajos registrados." lo removemos
-                const emptyMessage = lista.querySelector('p');
-                if (emptyMessage) {
-                    emptyMessage.remove();
+                    // Insertar al inicio de la lista
+                    const lista = document.getElementById('listaTrabajos');
+
+                    // Si la lista tiene un <p> que dice "No hay trabajos registrados." lo removemos
+                    const emptyMessage = lista.querySelector('p');
+                    if (emptyMessage) {
+                        emptyMessage.remove();
+                    }
+
+                    lista.prepend(tarjeta);
+
+                    // Limpiar formulario y poner fecha de hoy por defecto
+                    form.reset();
+                    initDate();
+
+                    // Mostrar toast
+                    showToast('Trabajo registrado exitosamente ✔️');
+                } else {
+                    alert('Error desconocido al registrar trabajo.');
                 }
-                
-                lista.prepend(tarjeta);
-
-                // Limpiar formulario
-                form.reset();
-
-                // Mostrar toast
-                showToast('Trabajo registrado exitosamente ✔️');
-            } else {
-                alert('Error desconocido al registrar trabajo.');
+            } catch (error) {
+                toggleButtonLoading(false);
+                alert('Error en la petición AJAX: ' + error.message);
             }
-        } catch (error) {
-            toggleButtonLoading(false);
-            alert('Error en la petición AJAX: ' + error.message);
+        });
+
+        function initDate() {
+            const dateInput = document.getElementById('fecha_registro');
+            const hoy = new Date().toISOString().split('T')[0];
+            dateInput.value = hoy;
         }
-    });
-</script>
-{% endblock %}
+
+        document.addEventListener("DOMContentLoaded", initDate);
+    </script>
+    {% endblock %}

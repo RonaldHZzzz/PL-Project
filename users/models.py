@@ -10,8 +10,7 @@ class Trabajo(models.Model):
     monto = models.DecimalField(max_digits=10, decimal_places=2)  # Monto del trabajo
     # Guardar la fecha local, evitando desfaces de UTC
     fecha_registro = models.DateField(
-        default=timezone.localdate,
-        editable=False
+        default=timezone.localdate
     )
 
     def __str__(self):
@@ -24,8 +23,7 @@ class Descuentos(models.Model):
     descuento = models.DecimalField(max_digits=10, decimal_places=2)  # Monto del descuento
     # Guardar la fecha local, evitando desfaces de UTC
     fecha_registro_descuento = models.DateField(
-        default=timezone.localdate,
-        editable=False
+        default=timezone.localdate
     )
 
     def __str__(self):

@@ -5,7 +5,21 @@
 
 {% block content %}
 <div class="max-w-6xl mx-auto mt-16 px-4">
-    <h2 class="text-3xl font-bold text-center mb-8 text-pink-700">Reportes</h2>
+    <h2 class="text-3xl font-bold text-center mb-4 text-pink-700">Reportes</h2>
+
+    <!-- Year Selector -->
+    <div class="flex justify-center mb-8">
+        <form id="yearForm" method="get" class="flex items-center space-x-2">
+            <input type="hidden" name="tab" value="{{ tab }}">
+            <label for="anio" class="font-semibold text-gray-700">Año:</label>
+            <select name="anio" id="anio" onchange="this.form.submit()" 
+                class="rounded-lg border-gray-300 focus:border-pink-500 focus:ring-pink-500 shadow-sm">
+                {% for a in anios_disponibles %}
+                <option value="{{ a }}" {% if a == anio_seleccionado %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
 
     <!-- Toggle Tabs -->
     <div class="flex mb-6 space-x-4 justify-center">
@@ -46,7 +60,7 @@
         <!-- Paginación NUEVOS -->
         <div class="flex justify-center mt-8 space-x-4 items-center">
             {% if page_obj_nuevos.has_previous %}
-            <a href="?page_nuevos={{ page_obj_nuevos.previous_page_number }}&tab=nuevos"
+            <a href="?page_nuevos={{ page_obj_nuevos.previous_page_number }}&tab=nuevos&anio={{ anio_seleccionado }}"
                 class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
                 ← Página anterior
             </a>
@@ -60,7 +74,7 @@
             </span>
 
             {% if page_obj_nuevos.has_next %}
-            <a href="?page_nuevos={{ page_obj_nuevos.next_page_number }}&tab=nuevos"
+            <a href="?page_nuevos={{ page_obj_nuevos.next_page_number }}&tab=nuevos&anio={{ anio_seleccionado }}"
                 class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
                 Página siguiente →
             </a>
@@ -107,7 +121,7 @@
         <!-- Paginación ANTERIORES -->
         <div class="flex justify-center mt-8 space-x-4 items-center">
             {% if page_obj_anteriores.has_previous %}
-            <a href="?page_anteriores={{ page_obj_anteriores.previous_page_number }}&tab=anteriores"
+            <a href="?page_anteriores={{ page_obj_anteriores.previous_page_number }}&tab=anteriores&anio={{ anio_seleccionado }}"
                 class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
                 ← Página anterior
             </a>
@@ -121,7 +135,7 @@
             </span>
 
             {% if page_obj_anteriores.has_next %}
-            <a href="?page_anteriores={{ page_obj_anteriores.next_page_number }}&tab=anteriores"
+            <a href="?page_anteriores={{ page_obj_anteriores.next_page_number }}&tab=anteriores&anio={{ anio_seleccionado }}"
                 class="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 transition">
                 Página siguiente →
             </a>

@@ -8,7 +8,8 @@
 
 
 {% block content %}
-<div id="toastDescuento" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity duration-500 z-50">
+<div id="toastDescuento"
+    class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity duration-500 z-50">
     Descuento registrado exitosamente ✔️
 </div>
 
@@ -26,14 +27,14 @@
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
             <h2 class="text-sm font-bold lg:text-xl">Total Descontado</h2>
             <p class="text-lg lg:text-2xl text-red-500" id="totalDescuentoSemanal">
-                ${{ total_descuento_semanal }} 
-                
+                ${{ total_descuento_semanal }}
+
             </p>
         </div>
         <div class="bg-pink-100 p-4 rounded shadow-md text-center">
-    <h2 class="text-sm font-bold lg:text-xl">Total Final</h2>
-    <p class="text-lg lg:text-2xl" id="totalFinal">${{ total_final }}</p>
-</div>
+            <h2 class="text-sm font-bold lg:text-xl">Total Final</h2>
+            <p class="text-lg lg:text-2xl" id="totalFinal">${{ total_final }}</p>
+        </div>
     </div>
 
     <!-- Formulario y lista en diseño responsivo -->
@@ -44,33 +45,32 @@
             <form id="descuentoForm" method="POST" action="{% url 'total' %}" class="space-y-4">
                 {% csrf_token %}
                 <div>
-                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Ingrese qué se descontó</label>
-                    <input
-                        type="text"
-                        id="descripcion"
-                        name="descripcion"
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Ingrese qué se
+                        descontó</label>
+                    <input type="text" id="descripcion" name="descripcion"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm"
-                        placeholder="Ingrese qué se descontó"
-                        required
-                    >
+                        placeholder="Ingrese qué se descontó" required>
                 </div>
                 <div>
-                    <label for="descuento" class="block text-sm font-medium text-gray-700">Ingrese monto a descontar</label>
+                    <label for="descuento" class="block text-sm font-medium text-gray-700">Ingrese monto a
+                        descontar</label>
                     <div class="flex items-center mt-1">
-                        <input
-                            type="number"
-                            id="descuento"
-                            name="descuento"
+                        <input type="number" id="descuento" name="descuento"
                             class="block w-full rounded-l-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm"
-                            step="0.01"
-                            placeholder="0.00"
-                            required
-                        >
-                        <span class="inline-flex items-center px-3 rounded-r-md bg-gray-50 border border-l-0 border-gray-300 text-gray-500 text-sm">$</span>
+                            step="0.01" placeholder="0.00" required>
+                        <span
+                            class="inline-flex items-center px-3 rounded-r-md bg-gray-50 border border-l-0 border-gray-300 text-gray-500 text-sm">$</span>
                     </div>
                 </div>
-                <button
-                    id="submitDescuentoBtn"   type="submit" class="w-full bg-pink-500 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
+                <div>
+                    <label for="fecha_registro_descuento" class="block text-sm font-medium text-gray-700">Fecha del
+                        descuento</label>
+                    <input type="date" id="fecha_registro_descuento" name="fecha_registro_descuento"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm"
+                        required>
+                </div>
+                <button id="submitDescuentoBtn" type="submit"
+                    class="w-full bg-pink-500 text-white px-4 py-2 rounded font-medium shadow-sm hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
                     Registrar Descuento
                 </button>
             </form>
@@ -104,8 +104,8 @@
         </div>
     </div>
 
-   
-    
+
+
 </div>
 
 <script>
@@ -135,7 +135,7 @@
         }
     }
 
-    descuentoForm.addEventListener('submit', async function(e) {
+    descuentoForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         toggleButtonLoadingDescuento(true);
@@ -163,44 +163,55 @@
             const data = await response.json();
 
             if (data.success) {
-            const descuento = data.descuento;
+                const descuento = data.descuento;
 
-            // Crear fila nueva en la tabla de descuentos
-            const tbody = document.querySelector('table tbody');
-            const emptyRow = tbody.querySelector('tr td[colspan="3"]');
-            if (emptyRow) {
-                emptyRow.parentNode.remove();
-            }
+                // Crear fila nueva en la tabla de descuentos
+                const tbody = document.querySelector('table tbody');
+                const emptyRow = tbody.querySelector('tr td[colspan="3"]');
+                if (emptyRow) {
+                    emptyRow.parentNode.remove();
+                }
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
                 <td class="border-b px-4 py-2">${descuento.descripcion}</td>
                 <td class="border-b px-4 py-2">${descuento.fecha_registro_descuento}</td>
                 <td class="border-b px-4 py-2">$${parseFloat(descuento.descuento).toFixed(2)}</td>
             `;
 
-            tbody.appendChild(tr);
+                tbody.appendChild(tr);
 
-            // Actualizar totales dinámicamente
-            if (data.total_descuento_semanal !== undefined) {
-                document.getElementById('totalDescuentoSemanal').textContent = `$${parseFloat(data.total_descuento_semanal).toFixed(2)}`;
+                // Actualizar totales dinámicamente
+                if (data.total_descuento_semanal !== undefined) {
+                    document.getElementById('totalDescuentoSemanal').textContent = `$${parseFloat(data.total_descuento_semanal).toFixed(2)}`;
+                }
+                if (data.total_final !== undefined) {
+                    document.getElementById('totalFinal').textContent = `$${parseFloat(data.total_final).toFixed(2)}`;
+                }
+
+                descuentoForm.reset();
+                initDateDiscounts();
+
+                showToastDescuento('Descuento registrado exitosamente ✔️');
+            } else {
+                alert('Error desconocido al registrar descuento.');
             }
-            if (data.total_final !== undefined) {
-                document.getElementById('totalFinal').textContent = `$${parseFloat(data.total_final).toFixed(2)}`;
-            }
-
-            descuentoForm.reset();
-
-            showToastDescuento('Descuento registrado exitosamente ✔️');
-        } else {
-            alert('Error desconocido al registrar descuento.');
-        }
 
         } catch (error) {
             toggleButtonLoadingDescuento(false);
             alert('Error en la petición AJAX: ' + error.message);
         }
     });
+
+    function initDateDiscounts() {
+        const dateInput = document.getElementById('fecha_registro_descuento');
+        if (dateInput) {
+            const hoy = new Date().toISOString().split('T')[0];
+            dateInput.value = hoy;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initDateDiscounts);
 </script>
 
 

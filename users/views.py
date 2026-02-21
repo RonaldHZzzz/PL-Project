@@ -82,7 +82,7 @@ def home(request):
                 'id': trabajo.id,
                 'trabajo': trabajo.trabajo,
                 'monto': float(trabajo.monto),
-                'fecha_registro': trabajo.fecha_registro.strftime('%Y-%m-%d %H:%M'),
+                'fecha_registro': trabajo.fecha_registro.strftime('%Y-%m-%d'),
                 'usuario': request.user.username,
             }
             return JsonResponse({'success': True, 'trabajo': data})
@@ -307,7 +307,12 @@ def total(request):
 @login_required
 def Report(request):
     # Configuración inicial
-    anio_actual = date.today().year
+    anio_param = request.GET.get('anio')
+    if anio_param:
+        anio_actual = int(anio_param)
+    else:
+        anio_actual = date.today().year
+    
     semana_corte = 27  # Semana de corte para reportes anteriores
     
     # Determinar el tipo de reporte a mostrar
@@ -315,8 +320,13 @@ def Report(request):
     page_nuevos = request.GET.get('page_nuevos', 1)
     page_anteriores = request.GET.get('page_anteriores', 1)
 
+    # Años disponibles para el selector (desde 2024 hasta el año actual + 1)
+    anios_disponibles = range(2024, date.today().year + 2)
+
     context = {
         'tab': tab,
+        'anio_seleccionado': anio_actual,
+        'anios_disponibles': anios_disponibles,
     }
 
     if tab == 'anteriores':
@@ -358,17 +368,23 @@ def Report(request):
         fecha_corte = date.fromisocalendar(anio_actual, semana_corte, 1)  # Lunes de semana_corte
         primer_miercoles = fecha_corte + timedelta(days=(2 - fecha_corte.weekday() + 7) % 7)
         
-        # 2. Calcular todos los miércoles hasta hoy
+        # 2. Calcular el límite superior (hoy si es el año actual, fin de año si es pasado)
         hoy = date.today()
+        if anio_actual < hoy.year:
+            fecha_limite = date(anio_actual, 12, 31)
+        else:
+            fecha_limite = hoy
+        
         miercoles_actual = hoy - timedelta(days=(hoy.weekday() - 2 + 7) % 7)
         
-        # 3. Definir período a excluir (1-8 julio)
+        # 3. Definir período a excluir (1-8 julio) - Solo aplica si es 2024 (asumiendo que fue un caso especial)
+        # O podrías dejarlo si aplica a todos los años, pero usualmente estas exclusiones son específicas.
         exclusion_inicio = date(anio_actual, 7, 1)
         exclusion_fin = date(anio_actual, 7, 8)
         
         # 4. Generar cada período Miércoles-Miércoles
         fecha_inicio = primer_miercoles
-        while fecha_inicio < hoy:
+        while fecha_inicio < fecha_limite:
             fecha_fin = fecha_inicio + timedelta(days=7)
             
             # Saltar el período de exclusión
